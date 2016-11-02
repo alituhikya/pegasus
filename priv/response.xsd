@@ -1,0 +1,22 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="AutoCreate">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Response" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="Status" minOccurs="0"/>
+                            <xs:element type="xs:string" name="StatusCode" minOccurs="0"/>
+                            <xs:element type="xs:string" name="StatusMessage" minOccurs="0"/>
+                            <xs:element type="xs:string" name="ErrorMessageCode" minOccurs="0"/>
+                            <xs:element type="xs:string" name="ErrorMessage" minOccurs="0"/>
+                            <xs:element type="xs:string" name="TransactionStatus" minOccurs="0"/>
+                            <xs:element type="xs:string" name="TransactionReference" minOccurs="0"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+

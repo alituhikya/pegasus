@@ -1,0 +1,300 @@
+%%%-------------------------------------------------------------------
+%%% @author alituhikyaj
+%%% @copyright (C) 2015, <COMPANY>
+%%% @doc
+%%%
+%%% @end
+%%% Created : 24. Jun 2015 12:34 PM
+%%%-------------------------------------------------------------------
+-module(transaction_handler).
+-author("alituhikyaj").
+
+%% API
+-export(
+[
+  process_transaction/1
+]
+).
+
+%% Operations
+-export(
+[
+  initiate_payment/1,
+  payment_return/1,
+  login/1,
+  get_transactions/1,
+  get_transaction/1,
+  get_transactions_by_phone_number/1
+]
+).
+
+
+%% processors
+-export(
+[
+  sync_processor/1,
+  async_processor/1
+]
+).
+
+
+-include("../include/pension_app_common.hrl").
+-include("../deps/authenticator/include/usr.hrl").
+-include("../deps/cqerl/include/cqerl.hrl").
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Process a parameter list which is a list of key-value paired tuples, this parameter list is part of a transaction record
+%% as well as the
+%% @end
+%%--------------------------------------------------------------------
+-spec(process_transaction(Transaction :: #pension_transaction{}) -> PensionRequestReturn :: #pension_request_return{}).
+process_transaction(OldTransaction = #pension_transaction{args_list = ParameterList, operation = Operation}) ->
+  %% create transaction
+
+  %%if it is a confirm payment operation then the payment_id is the transaction_id
+  {TransactionId,Pid} = get_pids(Operation,ParameterList),
+
+  Transaction = OldTransaction#pension_transaction{transaction_id = TransactionId, state = ?STATE_CREATED, archiver_pid = Pid},
+  transaction_archiver:archive(Pid,Transaction),
+  process_transaction_internal(Transaction).
+process_transaction_internal(Transaction = #pension_transaction{transaction_id = Transaction_id, archiver_pid = ArchiverPid, operation = Operation}) when is_record(Transaction, pension_transaction) ->
+  try
+    transaction_handler:Operation(Transaction)
+  catch
+    X:{Y, _N} when is_atom(Y) ->
+      Trace = io_lib:format("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [X, Transaction_id, Y, erlang:get_stacktrace()]),
+      error_logger:error_msg("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [X, Transaction_id, Y, erlang:get_stacktrace()]),      MessageBinaryToAtom = atom_to_binary(Y, utf8),
+      Message = re:replace(MessageBinaryToAtom, ?underscore_global_regex, " ", [{return, binary}, global]),
+      transaction_archiver:archive(ArchiverPid, Transaction#pension_transaction{state = ?STATE_PROCESSING_ERROR, trace = Trace, message = Message}),
+      #pension_request_return{success = false, message = Message};
+    throw:Y when is_atom(Y) ->
+      Trace = io_lib:format("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [throw, Transaction_id, Y, erlang:get_stacktrace()]),
+      error_logger:error_msg("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [throw, Transaction_id, Y, erlang:get_stacktrace()]),  MessageBinaryToAtom = atom_to_binary(Y, utf8),
+      Message = re:replace(MessageBinaryToAtom, ?underscore_global_regex, " ", [{return, binary}, global]),
+      transaction_archiver:archive(ArchiverPid, Transaction#pension_transaction{state = ?STATE_PROCESSING_ERROR, trace = Trace, message = Message}),
+      #pension_request_return{success = false, message = Message};
+    throw:Y ->
+      Trace = io_lib:format("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [throw, Transaction_id, Y, erlang:get_stacktrace()]),
+      error_logger:error_msg("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [throw, Transaction_id, Y, erlang:get_stacktrace()]),
+      Message = atom_to_binary(Y, utf8),
+      transaction_archiver:archive(ArchiverPid, Transaction#pension_transaction{state = ?STATE_PROCESSING_ERROR, trace = Trace, message = Message}),
+      #pension_request_return{success = false, message = Message};
+    X:Y ->
+      Trace = io_lib:format("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [X, Transaction_id, Y, erlang:get_stacktrace()]),
+      error_logger:error_msg("error has occurred of type: ~w transaction_id: ~w , message: ~w trace ~w  \n", [X, Transaction_id, Y, erlang:get_stacktrace()]),
+
+       transaction_archiver:archive(ArchiverPid, Transaction#pension_transaction{state = ?STATE_PROCESSING_ERROR, trace = Trace, message = ?FATAL_ERROR_MESSAGE}),
+      #pension_request_return{success = false, message = ?FATAL_ERROR_MESSAGE}
+  end.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% this initiates a payment
+%% @end
+%%--------------------------------------------------------------------
+-spec(initiate_payment(Transaction :: #pension_transaction{}) -> term()).
+initiate_payment(Transaction = #pension_transaction{args_list = ParameterList, archiver_pid = ArchiverPid}) ->
+  %% get parameters
+  Amount = validator:check_if_present(<<"amount">>,ParameterList,amount_not_present),
+  PhoneNumber =  validator:check_if_present(<<"phone_number">>,ParameterList,phone_number_not_present),
+
+  %% validate
+  validator:validate_phone_number(PhoneNumber) orelse throw(bad_format_number),
+  validator:binary_is_integer(Amount) orelse throw(non_integer),
+  AmountInt = binary_to_integer(Amount),
+  validator:amount_is_above_min(AmountInt) orelse throw(amount_is_below_minimum_value_allowed),
+  validator:amount_is_below_max(AmountInt) orelse throw(amount_above_maximum_value_allowed),
+
+  NewTransaction= Transaction#pension_transaction{amount = Amount,phone_number = PhoneNumber},
+  transaction_archiver:archive(ArchiverPid, NewTransaction#pension_transaction{state = ?STATE_TRANSACTION_VALIDATED}),
+
+  %% get network
+  Network = get_network(PhoneNumber),
+  transaction_archiver:archive(ArchiverPid, NewTransaction#pension_transaction{state = ?STATE_NETWORK_FOUND}),
+  processThisTransaction(NewTransaction#pension_transaction{network = Network, state = ?STATE_NETWORK_FOUND}).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% this confirms a payment
+%% @end
+%%--------------------------------------------------------------------
+-spec(payment_return(Transaction :: #pension_transaction{}) -> #pension_request_return{}).
+payment_return(Transaction = #pension_transaction{args_list = ParameterList}) ->
+  %% get parameters
+  Amount = validator:check_if_present(<<"amount">>, ParameterList, amount_not_present),
+  PhoneNumber = validator:check_if_present(<<"phone_number">>, ParameterList, phone_number_not_present),
+  Success = validator:check_if_present(<<"success">>, ParameterList, success_not_present),
+ State = validator:check_if_present(<<"state">>, ParameterList, state_not_present),
+
+  processThisTransaction(Transaction#pension_transaction{amount = Amount,phone_number = PhoneNumber,return_state = State,return_success = Success}).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% loggs in a user
+%% @end
+%%--------------------------------------------------------------------
+-spec(login(Transaction :: #pension_transaction{}) -> term()).
+login(Transaction = #pension_transaction{api_user = Usr,archiver_pid = ArchiverPid})->
+  transaction_archiver:archive(ArchiverPid,Transaction#pension_transaction{state = logged_in}),
+  #pension_request_return{success = true,payload = [{username,Usr#usr.auth_name},{key,Usr#usr.auth_code},{role,Usr#usr.client_role}]}.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% get all transactions
+%% @end
+%%--------------------------------------------------------------------
+get_transactions(Transaction = #pension_transaction{ archiver_pid = ArchiverPid}) ->
+  %% get parameters
+  transaction_archiver:archive(ArchiverPid, Transaction#pension_transaction{state = ?STATE_TRANSACTION_VALIDATED}),
+
+  CassandraSettings = env_utiility:get_cassandra_settings(),
+  CassandraContactPoint = CassandraSettings#cassandra_settings.cassandra_contact_point,
+  CassandraPort = CassandraSettings#cassandra_settings.cassandra_port,
+  KeySpace = CassandraSettings#cassandra_settings.keyspace,
+  {ok, Client} = cqerl:new_client({CassandraContactPoint, CassandraPort}, [{keyspace, KeySpace}]),
+  {ok, Result} = cqerl:run_query(Client, #cql_query{statement = "SELECT * FROM transaction_by_phone_number;"}),
+  Rows= cqerl:all_rows(Result),
+Return =  #pension_request_return{success = true,payload = Rows},
+cqerl:close_client(Client),
+  Return.
+
+%%--------------------------------------------------------------------
+%% @doc
+%% get a transactions by phone number
+%% @end
+%%--------------------------------------------------------------------
+get_transactions_by_phone_number(Transaction = #pension_transaction{ archiver_pid = ArchiverPid,args_list = ParameterList}) ->
+  %% get parameters
+  PhoneNumber =  validator:check_if_present(<<"phone_number">>,ParameterList,phone_number_not_present),
+  transaction_archiver:archive(ArchiverPid, Transaction#pension_transaction{state = ?STATE_TRANSACTION_VALIDATED}),
+  {_TimestampNow, _TimestampToday, TimestampMonth, _TimestampYear} = cquery_builder:getTimeAndDay(),
+  CassandraSettings = env_utiility:get_cassandra_settings(),
+  CassandraContactPoint = CassandraSettings#cassandra_settings.cassandra_contact_point,
+  CassandraPort = CassandraSettings#cassandra_settings.cassandra_port,
+  KeySpace = CassandraSettings#cassandra_settings.keyspace,
+  {ok, Client} = cqerl:new_client({CassandraContactPoint, CassandraPort}, [{keyspace, KeySpace}]),
+  {ok, Result} = cqerl:run_query(Client, #cql_query{statement = "SELECT * FROM transaction_by_phone_number WHERE bucket = ?and phone_number = ?;",
+  values = [{bucket,TimestampMonth},{phone_number, PhoneNumber}]}),
+  Rows= cqerl:all_rows(Result),
+  Return =  #pension_request_return{success = true,payload = Rows},
+  cqerl:close_client(Client),
+  Return.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% get a transaction
+%% @end
+%%--------------------------------------------------------------------
+get_transaction(Transaction = #pension_transaction{ archiver_pid = ArchiverPid,args_list = ParameterList}) ->
+  %% get parameters
+  TransactionId = validator:check_if_present(<<"transaction_id">>, ParameterList, transaction_id_not_present_in_request),
+  transaction_archiver:archive(ArchiverPid, Transaction#pension_transaction{state = ?STATE_TRANSACTION_VALIDATED}),
+
+  CassandraSettings = env_utiility:get_cassandra_settings(),
+  CassandraContactPoint = CassandraSettings#cassandra_settings.cassandra_contact_point,
+  CassandraPort = CassandraSettings#cassandra_settings.cassandra_port,
+  KeySpace = CassandraSettings#cassandra_settings.keyspace,
+  {ok, Client} = cqerl:new_client({CassandraContactPoint, CassandraPort}, [{keyspace, KeySpace}]),
+  {ok, Result} = cqerl:run_query(Client, #cql_query{statement = "SELECT * FROM transaction_by_id WHERE transaction_id = ?;",
+  values = [{transaction_id, TransactionId}]}),
+  Rows= cqerl:all_rows(Result),
+  Return =  #pension_request_return{success = true,payload = Rows},
+  cqerl:close_client(Client),
+  Return.
+
+
+
+%%---------------------------------------------------------------------------
+%% %% %% %% %% %% %%  INTERNAL FUNCTIONS  %% %% %% %% %% %%
+%%----------------------------------------------------------------------------
+%% handle_return({Success, Data, _Transaction}) ->
+%%   case Success of
+%%     ok -> {true, Data};
+%%     error -> {false, Data}
+%%   end.
+
+get_network(PhoneNumber) ->
+  case number_manipulator:get_network(PhoneNumber) of
+    unknown -> throw(unknown_network);
+    N -> N
+  end.
+
+
+
+processThisTransaction(Transaction = #pension_transaction{processor = Processor}) ->
+  Processor(Transaction).
+
+
+sync_processor(Transaction = #pension_transaction{transaction_id = Transaction_id, archiver_pid = ArchivierPid,operation = Operation}) when is_record(Transaction, pension_transaction) ->
+
+  case transaction_sup:start_transaction(Transaction) of
+    {ok, TransacionPid} ->
+      transaction_archiver:archive(ArchivierPid, Transaction#pension_transaction{state = ?STATE_TRANSACTION_PROCESS_STARTED}),
+      PensionReturnRequest = transaction:Operation(sync,TransacionPid),
+
+      %% check if the archiver process is still alive, if not then terminate this process
+      %% @todo but you still need to log success
+      case ArchivierPid of
+
+        undefined -> do_nothing;
+        _ ->
+          case erlang:process_info(ArchivierPid) of
+            undefined -> transaction:stop(TransacionPid);
+          %supervisor:terminate_child({global,?TRANSACTION_SUPERVISOR_NAME},TransacionPid),
+            _ -> do_nothing
+          end
+      end,
+
+      FinalState = case PensionReturnRequest#pension_request_return.success of
+                     true -> ?STATE_END_IN_ERROR;
+                     _ -> ?STATE_END_IN_SUCCESS
+                   end,
+      transaction_archiver:archive(ArchivierPid, Transaction#pension_transaction{state = FinalState, message = PensionReturnRequest#pension_request_return.message}),
+      PensionReturnRequest;
+    _ ->
+      transaction_archiver:archive(ArchivierPid, Transaction#pension_transaction{state = ?STATE_PROCESSING_ERROR, message = <<"failed to start transaction process">>}),
+      #pension_request_return{success = error, message = ?FATAL_ERROR_MESSAGE, transaction_id = Transaction_id}
+
+  end.
+
+async_processor(Transaction = #pension_transaction{transaction_id = Transaction_id, archiver_pid = ArchivierPid,operation = Operation}) when is_record(Transaction, pension_transaction) ->
+
+  case transaction_sup:start_transaction(Transaction) of
+    {ok, TransacionPid} ->
+      transaction_archiver:archive(ArchivierPid, Transaction#pension_transaction{state = ?STATE_TRANSACTION_PROCESS_STARTED}),
+      Run = transaction:Operation(async,TransacionPid),
+      #pension_request_return{success = Run, transaction_id = Transaction_id};
+   Trace ->
+      transaction_archiver:archive(ArchivierPid, Transaction#pension_transaction{state = ?STATE_PROCESSING_ERROR, message = <<"failed to start transaction process">>,trace = Trace}),
+      #pension_request_return{success = error, message = ?FATAL_ERROR_MESSAGE, transaction_id = Transaction_id}
+
+  end.
+
+
+get_pids(Operation,ParameterList)->
+  %%if it is a return payment operation then the payment_id is the transaction_id
+  case Operation of
+    payment_return ->
+      {_TransactionId, TransactionId1} = lists:keyfind(<<"payment_id">>, 1, ParameterList),
+      case lists:keyfind(<<"state">>, 1, ParameterList) of
+        {_State, <<"initiated">>} ->
+          {ok, Pid1} = transaction_archiver_sup:start_archiver_with_process_step(TransactionId1, 5000),
+          {TransactionId1, Pid1};
+        {_State, <<"confirmed">>} ->
+          {ok, Pid2} = transaction_archiver_sup:start_archiver_with_process_step(TransactionId1, 9000),
+
+          {TransactionId1, Pid2};
+
+        _ ->
+          {ok, Pid2} = transaction_archiver_sup:start_archiver(TransactionId1),
+          {TransactionId1, Pid2}
+      end;
+    _ ->
+      TransactionId = number_manipulator:get_transaction_id(),
+      {ok, Pid} = transaction_archiver_sup:start_archiver(TransactionId),
+      {TransactionId, Pid}
+  end.

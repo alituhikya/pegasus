@@ -1,0 +1,31 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="AutoCreate">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Request" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="APIUsername"/>
+                            <xs:element type="xs:string" name="APIPassword"/>
+                            <xs:element type="xs:string" name="Method"/>
+                            <xs:element type="xs:string" name="NonBlocking"/>
+                            <xs:element type="xs:string" name="Amount"/>
+                            <xs:element type="xs:string" name="Account"/>
+                            <xs:element type="xs:string" name="AccountProviderCode"/>
+                            <xs:element type="xs:string" name="Narrative"/>
+                            <xs:element type="xs:string" name="NarrativeFileName" minOccurs="0"/>
+                            <xs:element type="xs:string" name="NarrativeFileBase64" minOccurs="0"/>
+                            <xs:element type="xs:string" name="InternalReference" minOccurs="0"/>
+                            <xs:element type="xs:string" name="ExternalReference"/>
+                            <xs:element type="xs:string" name="ProviderReferenceText"/>
+                            <xs:element type="xs:string" name="InstantNotificationUrl"/>
+                            <xs:element type="xs:string" name="FailureNotificationUrl"/>
+                            <xs:element type="xs:string" name="AuthenticationSignatureBase64"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+

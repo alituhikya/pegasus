@@ -1,0 +1,45 @@
+%%%-------------------------------------------------------------------
+%%% @author mb-spare
+%%% @copyright (C) 2016, <COMPANY>
+%%% @doc
+%%%
+%%% @end
+%%% Created : 23. Feb 2016 5:26 PM
+%%%-------------------------------------------------------------------
+-module(yo_payments_env_util).
+-author("mb-spare").
+
+-include("../include/yo_payments_app_common.hrl").
+%% API
+-export([get_settings/0]).
+get_settings() ->
+  {ok, ApiUsername} = case application:get_env(yo_payment_apiusername) of
+                                  undefined -> {ok, "90008980182"};
+                                  A -> A
+                                end,
+  {ok, APIPassword} = case application:get_env(yo_payment_apipassword) of
+                          undefined -> {ok, "1078151079"};
+                          B -> B
+                      end,
+  {ok, InstantNotificationUrl} = case application:get_env(yo_payment_notification_url) of
+                                   undefined -> {ok, "http://localhost:9097/api/agent/"};
+                                   C -> C
+                                 end,
+  {ok, FailureNotificationUrl} = case application:get_env(yo_payment_failure_url) of
+                                   undefined -> {ok, "http://localhost:9097/api/agent/"};
+                                   D -> D
+                                 end,
+  {ok, Url} = case application:get_env(yo_payment_url) of
+                 undefined -> {ok, "http://41.220.12.206/services/yopaymentsdev/task.php"};
+                 E -> E
+               end,
+  {ok, PrivateKey} = case application:get_env(private_key_password) of
+                undefined -> {ok, "chap4yopayments"};
+                F -> F
+              end,
+
+  #yo_payments_settings{api_username =  ApiUsername, api_password =  APIPassword,
+                          notification_url = InstantNotificationUrl, failure_url = FailureNotificationUrl,
+  payment_url = Url, private_key_password=PrivateKey
+  }.
+

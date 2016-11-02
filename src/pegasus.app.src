@@ -1,0 +1,10 @@
+{application, pegasus,
+ [
+  {description, "Get paid to spend"},
+  {vsn, "0.0.1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]}
+ ]}.

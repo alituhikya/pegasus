@@ -1,0 +1,93 @@
+%%%-------------------------------------------------------------------
+%%% @author mb-spare
+%%% @copyright (C) 2016, <COMPANY>
+%%% @doc
+%%%
+%%% @end
+%%% Created : 01. Jul 2016 5:11 PM
+%%%-------------------------------------------------------------------
+-module(yo_payments).
+-author("mb-spare").
+
+-include("../include/yo_payments_app_common.hrl").
+-include("../deps/core/include/core_app_common.hrl").
+-include("../include/response_not_shared.hrl").
+%% API
+-export([deposit/1,authenticate/1]).
+
+-spec(deposit(#payment{})->
+  {ok, Message :: binary(),Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
+deposit(#payment{amount =Amount, phone_number = PhoneNumber,network = Network,reason = Reason,transaction_id = TransactionId}) ->
+  Settings = yo_payments_env_util:get_settings(),
+  Authenticationsignature = yo_payments_signature:get_signature(binary,Amount,PhoneNumber,Reason,TransactionId,Settings),
+  AutoCreateRecord = #'AutoCreate/Request'{
+    'APIPassword' = Settings#yo_payments_settings.api_password,
+    'APIUsername' = Settings#yo_payments_settings.api_username,
+    'Method' = "acdepositfunds",
+    'NonBlocking' = "TRUE", %% inquiry
+    'Amount' = Amount,
+    'Account' = PhoneNumber,
+    'AccountProviderCode' = yo_payments_util:get_network_code(Network),
+    'Narrative' = Reason,
+    'ExternalReference' = TransactionId,
+    'ProviderReferenceText' = Reason,
+    'InstantNotificationUrl' =Settings#yo_payments_settings.notification_url,
+    'FailureNotificationUrl' = Settings#yo_payments_settings.failure_url,
+    'AuthenticationSignatureBase64' = Authenticationsignature
+  },
+  Method = post,
+  URL = Settings#yo_payments_settings.payment_url,
+  Headers = [{<<"Content-Type">>, <<"text/xml">>}, {<<"Content-transfer-encoding">>, <<"text">>}],
+  Options = [],
+  Body = xml_request:get_request(manual,AutoCreateRecord),
+  error_logger:error_msg("BOdddy ~w ~n", [binary_to_list(Body)]),
+   file:write_file("returnedbodyxml",term_to_list(Body)),
+  Value = hackney:request(Method, URL, Headers,Body, Options),
+
+  case Value of
+    {error, Reason} -> {error,<<"fatal error contacting service provider">>,Reason};
+    {ok, 200, _RespHeaders, ClientRef} ->
+      {ok, Body} = hackney:body(ClientRef),
+      io:format("Body ~w ~n",[Body]),
+      BodyDecoded= xml_response:get_response(fast_xml,Body),
+      io:format("BodyDecoded ~w ~n",[BodyDecoded]),
+
+      case BodyDecoded#'Response'.'Status' of
+        <<"OK">> ->
+          {ok,{BodyDecoded#'Response'.'TransactionStatus',BodyDecoded#'Response'.'TransactionReference'},BodyDecoded}
+          ;
+        <<"ERROR">> ->
+          {error, BodyDecoded#'Response'.'StatusMessage',BodyDecoded}
+      end;
+    {ok, StatusCode, _RespHeaders, _ClientRef} -> {error, <<"transaction initiation failed">>,StatusCode}
+  end.
+
+%% @doc this is called to authenticate the signature of yo_payments
+-spec(authenticate(#core_request{})-> ok | {error, Error :: term()}).
+authenticate(Request) ->
+  case application:get_env(test) of
+    {ok, false}->authenticate(production,Request);
+    {ok,true}->authenticate(test,Request);
+    _->authenticate(test,Request)
+  end.
+
+authenticate(test,_Request)->
+ok;
+authenticate(production,#core_request{args_list = ArgsList})->
+  try
+  Signature = lists:keyfind(<<"signature">>, 1, ArgsList),
+    Decrypted =yo_payments_signature:decrypt(Signature),
+    {ok,DateTime} = lists:keyfind(<<"date_time">>, 1, ArgsList),
+    {ok,Amount} = lists:keyfind(<<"amount">>, 1, ArgsList),
+    {ok,Narrative} = lists:keyfind(<<"narrative">>, 1, ArgsList),
+    {ok,NetworkRef} = lists:keyfind(<<"network_ref">>, 1, ArgsList),
+    {ok,ExternalRef} = lists:keyfind(<<"external_ref">>, 1, ArgsList),
+
+    Decrypted =:= erlang:iolist_to_binary([DateTime,Amount,Narrative,NetworkRef,ExternalRef])
+    of
+    true -> ok;
+    false -> {error,<<"signature authentiacation failed">>}
+   catch
+     _X:_Y ->
+       {error,<<"signature authentiacation failed">>}
+  end.

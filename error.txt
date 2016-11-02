@@ -1,0 +1,159 @@
+==> pegasus (eunit)
+Compiled test/signup_customer_request_handler_tests.erl
+======================== EUnit ========================
+signup_customer_request_handler_tests: sign_up_customer_test (module 'signup_customer_request_handler_tests')...
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.191.0> Connected to pegasus at undefined with user pegasus: <0.192.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.196.0> Connected to pegasus at undefined with user pegasus: <0.197.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.198.0> Connected to pegasus at undefined with user pegasus: <0.199.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.200.0> Connected to pegasus at undefined with user pegasus: <0.201.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.202.0> Connected to pegasus at undefined with user pegasus: <0.203.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.204.0> Connected to pegasus at undefined with user pegasus: <0.205.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.206.0> Connected to pegasus at undefined with user pegasus: <0.207.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.208.0> Connected to pegasus at undefined with user pegasus: <0.209.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.210.0> Connected to pegasus at undefined with user pegasus: <0.211.0>
+
+=INFO REPORT==== 2-Jun-2016::00:56:26 ===
+<0.212.0> Connected to pegasus at undefined with user pegasus: <0.213.0>
+== Starting CQErl frontend. ==
+test/signup_customer_request_handler_tests.erl:24:<0.173.0>: here 1
+test/signup_customer_request_handler_tests.erl:55:<0.173.0>: here 2
+test/signup_customer_request_handler_tests.erl:56:<0.173.0>: {"customer_first_name":"first","customer_middle_name":"middle","customer_last_name":"last","customer_phone_number":"256756090909","customer_password":"1234","customer_agent_phone_number":"256771257286","customer_email":"test@local.com","customer_security_question":"Where are you?","customer_security_answer":"Right here","customer_country":"UGANDA","customer_district":"Kampala","customer_city":"Ntinda","customer_national_id":"1463233395"}
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+** Generic server <<"AtfhJe1464818190740197">> terminating 
+** Last message in was {'$gen_cast',run}
+** When Server state == {async_state,<<"AtfhJe1464818190740197">>,
+                            #Fun<transaction.3.26934483>,
+                            {{pegasus_transaction,<<"unknown">>,0,
+                                 <<"0756719888">>,unknown,<0.283.0>,undefined,
+                                 [{<<"customer_first_name">>,<<"first">>},
+                                  {<<"customer_middle_name">>,<<"middle">>},
+                                  {<<"customer_last_name">>,<<"last">>},
+                                  {<<"customer_phone_number">>,
+                                   <<"256756090909">>},
+                                  {<<"customer_password">>,<<"1234">>},
+                                  {<<"customer_agent_phone_number">>,
+                                   <<"256771257286">>},
+                                  {<<"customer_email">>,<<"test@local.com">>},
+                                  {<<"customer_security_question">>,
+                                   <<"Where are you?">>},
+                                  {<<"customer_security_answer">>,
+                                   <<"Right here">>},
+                                  {<<"customer_country">>,<<"UGANDA">>},
+                                  {<<"customer_district">>,<<"Kampala">>},
+                                  {<<"customer_city">>,<<"Ntinda">>},
+                                  {<<"customer_national_id">>,
+                                   <<"1463233395">>}],
+                                 undefined,<<"unknown">>,undefined,
+                                 signup_customer,undefined,undefined,0,basic,
+                                 undefined,undefined,0,undefined,unknown,sync,
+                                 sync,<<"Kq6GyIxqilViF1464818190671886">>,
+                                 transaction,undefined,0,undefined,undefined,
+                                 undefined,[]},
+                             {customer,true,<<"256771257286">>,
+                                 [{<<"256771257286">>,1},
+                                  {<<"256771257287">>,2},
+                                  {<<"256771257288">>,3},
+                                  {<<"256771257289">>,4},
+                                  {<<"256771257290">>,5}],
+                                 false,<<"UGANDA">>,<<"256756090909">>,
+                                 <<"test@local.com">>,<<"first">>,<<"last">>,
+                                 <<"1463233395">>,<<"1234">>,
+                                 <<"Where are you?">>,<<"Right here">>,airtel,
+                                 undefined,<<"middle">>,<<"Kampala">>,
+                                 <<"Ntinda">>}}}
+** Reason for termination == 
+** {{badrecord,agent},
+    [{agent_util,'-update_customers_agent_network/2-lc$^0/1-0-',2,
+                 [{file,"src/agent_util.erl"},{line,172}]},
+     {agent_util,update_customers_agent_network,2,
+                 [{file,"src/agent_util.erl"},{line,169}]},
+     {async_runner,handle_cast,2,[{file,"src/async_runner.erl"},{line,101}]},
+     {gen_server,handle_msg,5,[{file,"gen_server.erl"},{line,604}]},
+     {proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,239}]}]}
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+Error in process <0.311.0> with exit value: {{nocatch,{missing_parameter,{parameter,parent_phone_number},{in,[{parent_phone_number,undefined},{agent_level,1}]},{specs,[{cqerl_result_column_spec,<<17 bytes>>,<<29 bytes>>,parent_phone_number,varchar},{cqerl_result_column_spec... 
+
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+Error in process <0.312.0> with exit value: {{nocatch,{missing_parameter,{parameter,parent_phone_number},{in,[{parent_phone_number,undefined},{agent_level,1}]},{specs,[{cqerl_result_column_spec,<<17 bytes>>,<<29 bytes>>,parent_phone_number,varchar},{cqerl_result_column_spec... 
+
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+Error in process <0.313.0> with exit value: {{nocatch,{missing_parameter,{parameter,parent_phone_number},{in,[{parent_phone_number,undefined},{agent_level,1}]},{specs,[{cqerl_result_column_spec,<<17 bytes>>,<<29 bytes>>,parent_phone_number,varchar},{cqerl_result_column_spec... 
+
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+Error in process <0.314.0> with exit value: {{nocatch,{missing_parameter,{parameter,parent_phone_number},{in,[{parent_phone_number,undefined},{agent_level,1}]},{specs,[{cqerl_result_column_spec,<<17 bytes>>,<<29 bytes>>,parent_phone_number,varchar},{cqerl_result_column_spec... 
+
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+Error in process <0.315.0> with exit value: {{nocatch,{missing_parameter,{parameter,parent_phone_number},{in,[{parent_phone_number,undefined},{agent_level,1}]},{specs,[{cqerl_result_column_spec,<<17 bytes>>,<<29 bytes>>,parent_phone_number,varchar},{cqerl_result_column_spec... 
+
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+Error in process <0.316.0> with exit value: {{nocatch,{missing_parameter,{parameter,parent_phone_number},{in,[{parent_phone_number,undefined},{agent_level,1}]},{specs,[{cqerl_result_column_spec,<<17 bytes>>,<<29 bytes>>,parent_phone_number,varchar},{cqerl_result_column_spec... 
+
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+PegasusRequestReturn :{pegasus_request_return,true,undefined,<<75,113,54,71,121,73,120,113,105,108,86,105,70,49,52,54,52,56,49,56,49,57,48,54,55,49,56,56,54>>,undefined}
+
+=ERROR REPORT==== 2-Jun-2016::00:56:30 ===
+error has occurred message undefined : 
+*failed*
+in function signup_customer_request_handler_tests:'-sign_up_customer_test/0-fun-4-'/2 (test/signup_customer_request_handler_tests.erl, line 68)
+in call from signup_customer_request_handler_tests:sign_up_customer_test/0 (test/signup_customer_request_handler_tests.erl, line 68)
+**error:{assertEqual_failed,[{module,signup_customer_request_handler_tests},
+                     {line,68},
+                     {expression,"ReadCustomer # customer . national_id"},
+                     {expected,<<"1463233395">>},
+                     {value,undefined}]}
+
+
+=======================================================
+  Failed: 1.  Skipped: 0.  Passed: 0.
+Cover analysis: /home/mb-spare/Development/pegasus/.eunit/index.html
+Coverdata export: /home/mb-spare/Development/pegasus/.eunit/cover.coverdata
+
+Code Coverage:
+signup_customer_request_handler_tests :  33%
+
+Total                                 : 33%
+
+=INFO REPORT==== 2-Jun-2016::00:56:30 ===
+    application: pgapp
+    exited: stopped
+    type: temporary
+
+=INFO REPORT==== 2-Jun-2016::00:56:30 ===
+    application: ssl
+    exited: killed
+    type: temporary
+
+=INFO REPORT==== 2-Jun-2016::00:56:30 ===
+    application: pooler
+    exited: killed
+    type: temporary
+
+=INFO REPORT==== 2-Jun-2016::00:56:30 ===
+    application: cqerl
+    exited: killed
+    type: temporary

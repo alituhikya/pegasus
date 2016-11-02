@@ -1,0 +1,58 @@
+%%%-------------------------------------------------------------------
+%%% @author mb-spare
+%%% @copyright (C) 2016, <COMPANY>
+%%% @doc
+%%%
+%%% @end
+%%% Created : 23. Feb 2016 5:26 PM
+%%%-------------------------------------------------------------------
+-module(env_utiility).
+-author("mb-spare").
+
+-include("../include/chapchap_app_common.hrl").
+%% API
+-export([get_cassandra_settings/0, get_withdraw_timeout/0,get_postgres_settings/0]).
+get_cassandra_settings() ->
+  {ok, CassandraContactPoint} = case application:get_env(cassandra_contact_point) of
+                                  undefined -> {ok, "127.0.0.1"};
+                                  A -> A
+                                end,
+  {ok, CassandraPort} = case application:get_env(cassandra_port) of
+                          undefined -> {ok, 9042};
+                          B -> B
+                        end,
+  {ok, KeySpace} = case application:get_env(keyspace) of
+                     undefined -> {ok, "chapchap_keyspace"};
+                     C -> C
+                   end,
+  #cassandra_settings{cassandra_contact_point = CassandraContactPoint, cassandra_port = CassandraPort, keyspace = KeySpace}.
+
+get_withdraw_timeout() ->
+  {ok, WithdrawTimeout} = case application:get_env(withdraw_timeout) of
+                            undefined -> {ok, 3000};
+                            A -> A
+                          end,
+  WithdrawTimeout.
+
+get_postgres_settings() ->
+  {ok, Pg_IP} = case application:get_env(pg_ip) of
+                  undefined -> {ok, "localhost"};
+                  A -> A
+                end,
+  {ok, Pg_username} = case application:get_env(pg_username) of
+                        undefined -> {ok, "chapchap"};
+                        B -> B
+                      end,
+  {ok, Pg_password} = case application:get_env(pg_password) of
+                        undefined -> {ok, ""};
+                        C -> C
+                      end,
+  {ok, Pg_database} = case application:get_env(pg_database) of
+                        undefined -> {ok, "chapchap"};
+                        D -> D
+                      end,
+  {ok, Pg_connect_timeout} = case application:get_env(pg_connect_timeout) of
+                               undefined -> {ok, 4000};
+                               E -> E
+                             end,
+  #postgres_settings{pg_ip = Pg_IP, pg_username = Pg_username, pg_password = Pg_password, pg_database = Pg_database, pg_connect_timeout = Pg_connect_timeout}.

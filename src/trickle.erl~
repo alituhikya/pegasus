@@ -1,0 +1,58 @@
+%%%-------------------------------------------------------------------
+%%% @author mb-spare
+%%% @copyright (C) 2016, <COMPANY>
+%%% @doc
+%%% <p>The main purpose of this module is aid in the perfoming of the trickle down of commisions through an agent </p>
+%%% @end
+%%% Created : 09. May 2016 9:03 PM
+%%%-------------------------------------------------------------------
+-module(trickle).
+-author("mb-spare").
+
+-include("../include/chapchap_app_common.hrl").
+%% API
+-export([get_percentage/2,get_account_actions/2]).
+%%------------------------------------------------
+%% @doc
+%% <p> Takes a trickle record and generates a list of AccountActions to be perfomed during the trickle down of commisions </p>
+%% <p> The trickle record will include an agent set of the form [{PhoneNumber,Level}]
+%% and a list of Trickle percentages of the form [{Level,Percentage}] </p>
+%% <p>it will also include a list of account types of the agent to increment and a vault type</p>
+%% @end
+%%---------------------------------------------------
+-spec(get_account_actions(Trickle :: #trickle{})-> AccountActionList :: list()).
+get_account_actions(Transaction,TrickleRecord = #trickle{agentSet = AgentSet}) when length(AgentSet) < 8 ->
+  get_account_actions_vault(Transaction,TrickleRecord);
+get_account_actions(Transaction,TrickleRecord) ->
+  get_account_actions_internal(Transaction,TrickleRecord).
+
+get_account_actions_vault(Transaction = #chapchap_transaction{transaction_id = Id},TrickleRecord = #trickle{agentSet = AgentSet, amount = Amount,
+  trickle_percentages = TrickleMacro,vault_type = VaultType}) when length(AgentSet) < 8 ->
+  Function = fun({_Agent,Level},Accumulator) ->  get_percentage(Level,TrickleMacro) + Accumulator end,
+  VaultPercentage = util:round_up_float((1.0-lists:foldl(Function,0,AgentSet)),1),
+  error_logger:error_msg("VaultPercentagee ~w ~n", [VaultPercentage]),
+  VaultAccountAction = #account_action{amount = Amount * VaultPercentage,account_number =?ACCOUNT_VAULT,account_type =VaultType,transaction_id = Id},
+  [VaultAccountAction|get_account_actions_internal(Transaction,TrickleRecord)].
+
+get_account_actions_internal(#chapchap_transaction{transaction_id = Id},#trickle{agentSet = AgentSet, amount = Amount,
+  trickle_percentages = TrickleMacro, account_types = AccountTypes}) ->
+
+  % two list comprehensions, one inside another
+  % the outer one is for each account type to be incremented
+  % the inner one is for each agent in the agent set
+  % so each agent should have an account action for each account type
+ Output =lists:flatten(
+  [
+     [
+         #account_action{account_number = PhoneNumber, amount = Amount* get_percentage(Level,TrickleMacro),account_type = AccountType,level = Level,user_type = agent,transaction_id = Id}
+         || {PhoneNumber,Level} <- AgentSet
+     ]
+    || AccountType <- AccountTypes
+  ]),
+error_logger:error_msg("Output: ~w  ~n", [Output]),
+  Output
+.
+
+get_percentage(Level,TrickleMacro)->
+  {_Key,Value} = lists:keyfind(Level,1,TrickleMacro),
+  Value.

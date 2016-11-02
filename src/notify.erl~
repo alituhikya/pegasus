@@ -1,0 +1,50 @@
+%%%-------------------------------------------------------------------
+%%% @author mb-spare
+%%% @copyright (C) 2016, <COMPANY>
+%%% @doc
+%%%
+%%% @end
+%%% Created : 18. May 2016 1:59 PM
+%%%-------------------------------------------------------------------
+-module(notify).
+-author("mb-spare").
+
+-include("../include/chapchap_app_common.hrl").
+%% API
+-export([send_account_action/2, send_licensed/2]).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% this is used to send an account action notification to a client
+%%
+%% @todo test this
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec(send_account_action(AccountAction :: #account_action{},Record :: term())-> term()).
+%% send_account_action(_Record,AccountActions) when is_list(AccountActions)->
+%%   [begin send_account_action(_Transaction,AccountAction)end || AccountAction <- AccountActions];
+
+send_account_action(_Record,#account_action{account_number = _AccountNumber,account_type = _AccountType,amount = _Amount})->
+%%   ReturnToEncode = [{notify_type, <<"account_action">>},
+%%     {account,AccountType},{amount,Amount}],
+%%   Payload = jsx:encode(ReturnToEncode),
+%%   http_client:mobile_notify(AccountNumber,Payload).
+  ok.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% this is used to send a licensed notification a client
+%%
+%% @todo test this
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec(send_licensed(AccountAction :: #agent{},Record :: term())-> ok | {error, Reason :: term()}).
+send_licensed(_Record,#agent{agent_phone_number = _AgentPhoneNumber})->
+%%   ReturnToEncode = [{notify_type, <<"licensed">>},
+%%     {licensed,true}],
+%%   Payload = jsx:encode(ReturnToEncode),
+%%   http_client:mobile_notify(AgentPhoneNumber,Payload).
+ok.
