@@ -1,3 +1,4 @@
+src/pegasus.app.src
 .idea/
 *.iml
 *.beam

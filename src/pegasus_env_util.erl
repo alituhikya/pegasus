@@ -11,32 +11,18 @@
 
 -include("../include/pegasus_app_common.hrl").
 %% API
--export([get_settings/0,get_settings_withdraw/0]).
+-export([get_settings/0,get_alarm_emails/0,get_private_key/0]).
 get_settings() ->
-  {ok, ApiUsername} = case application:get_env(pegasus_apiusername) of
-                        %%undefined -> {ok, <<"90008980182">>};
-                        %% undefined -> {ok, <<"100821582394">>};
-                        undefined -> {ok, <<"9855460">>};
+  {ok, ApiUsername} = case application:get_env(pegasus,pegasus_apiusername) of
+                        undefined -> {ok, <<"CHAPCHAP">>};
                         A -> A
                       end,
-  {ok, APIPassword} = case application:get_env(pegasus_apipassword) of
-                        %undefined -> {ok, <<"1078151079">>};
-                        % undefined -> {ok, <<"o08C-yhRO-Ibir-BVjt-xcRa-4fN7-Ovvx-el46">>};
-                        undefined -> {ok, <<"ufLW-olVn-RlJr-mvLp-mcBy-dvj2-E1Z3-lZSJ">>};
+  {ok, APIPassword} = case application:get_env(pegasus,pegasus_apipassword) of
+                        undefined -> {ok, <<"07C06VC857">>};
                         B -> B
                       end,
-  {ok, InstantNotificationUrl} = case application:get_env(pegasus_notification_url) of
-                                   undefined -> {ok, <<"https://www.chapchap.info:9097/api/service_provider/transaction/mobile_money/sync/confirm/pegasus">>};
-                                   C -> C
-                                 end,
-  {ok, FailureNotificationUrl} = case application:get_env(pegasus_failure_url) of
-                                   undefined -> {ok, <<"localhost">>};
-                                   D -> D
-                                 end,
-  {ok, Url} = case application:get_env(pegasus_url) of
-                % undefined -> {ok, "http://41.220.12.206/services/yopaymentsdev/task.php"};
-                %  undefined -> {ok, "https://paymentsapi1.yo.co.ug/ybs/task.php"};
-                undefined -> {ok, "https://pay1.yo.co.ug/ybs/task.php"};
+  {ok, Url} = case application:get_env(pegasus,pegasus_url) of
+                undefined -> {ok, "https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"};
                 E -> E
               end,
   {ok, PrivateKey} = case application:get_env(private_key_password) of
@@ -45,43 +31,19 @@ get_settings() ->
                      end,
 
   #pegasus_settings{api_username =  ApiUsername, api_password =  APIPassword,
-    notification_url = InstantNotificationUrl, failure_url = FailureNotificationUrl,
-    payment_url = Url, private_key_password=PrivateKey
+    url = Url, private_key_password=PrivateKey
   }.
 
-get_settings_withdraw() ->
-  {ok, ApiUsername} = case application:get_env(pegasus_apiusername) of
-                        %%undefined -> {ok, <<"90008980182">>};
-                         undefined -> {ok, <<"100821582394">>};
-                        %undefined -> {ok, <<"9855460">>};
+get_alarm_emails() ->
+  {ok, Emails} = case application:get_env(pegasus,alarm_emails) of
+                        undefined -> {ok,[<<"james.alituhikya@gmail.com">>,<<"maali.toni@gmail.com">>,<<"lydia.ashaba@gmail.com">>]};
                         A -> A
                       end,
-  {ok, APIPassword} = case application:get_env(pegasus_apipassword) of
-                        %undefined -> {ok, <<"1078151079">>};
-                         undefined -> {ok, <<"o08C-yhRO-Ibir-BVjt-xcRa-4fN7-Ovvx-el46">>};
-                        %undefined -> {ok, <<"ufLW-olVn-RlJr-mvLp-mcBy-dvj2-E1Z3-lZSJ">>};
-                        B -> B
-                      end,
-  {ok, InstantNotificationUrl} = case application:get_env(pegasus_notification_url) of
-                                   undefined -> {ok, <<"https://www.chapchap.info:9097/api/service_provider/transaction/mobile_money/sync/confirm/pegasus">>};
-                                   C -> C
-                                 end,
-  {ok, FailureNotificationUrl} = case application:get_env(pegasus_failure_url) of
-                                   undefined -> {ok, <<"localhost">>};
-                                   D -> D
-                                 end,
-  {ok, Url} = case application:get_env(pegasus_url) of
-                % undefined -> {ok, "http://41.220.12.206/services/yopaymentsdev/task.php"};
-                  undefined -> {ok, "https://paymentsapi1.yo.co.ug/ybs/task.php"};
-                %undefined -> {ok, "https://pay1.yo.co.ug/ybs/task.php"};
-                E -> E
-              end,
-  {ok, PrivateKey} = case application:get_env(private_key_password) of
-                       undefined -> {ok, "chap4yopayments"};
-                       F -> F
-                     end,
+  Emails.
 
-  #pegasus_settings{api_username =  ApiUsername, api_password =  APIPassword,
-    notification_url = InstantNotificationUrl, failure_url = FailureNotificationUrl,
-    payment_url = Url, private_key_password=PrivateKey
-  }.
+get_private_key() ->
+  {ok, PrivateKey} = case application:get_env(pegasus,private_key) of
+                   undefined -> {error,not_set};
+                   A -> A
+                 end,
+  PrivateKey.

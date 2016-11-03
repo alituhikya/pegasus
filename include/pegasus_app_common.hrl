@@ -1,9 +1,7 @@
 -record(pegasus_settings,{
   api_username,
   api_password,
-  payment_url,
-  notification_url,
-  failure_url,
+  url,
   private_key_password
 }).
 

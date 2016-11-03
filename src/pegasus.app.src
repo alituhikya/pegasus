@@ -6,5 +6,11 @@
   {applications, [
                   kernel,
                   stdlib
-                 ]}
+                 ]},
+   {env, [
+     {pegasus_apiusername,"CHAPCHAP"},
+     {pegasus_apipassword,"07C06VC857"},
+     {pegasus_url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"},
+     {alarm_emails,[<<"james.alituhikya@gmail.com">>,<<"maali.toni@gmail.com">>,<<"lydia.ashaba@gmail.com">>]}
+   ]}
  ]}.
