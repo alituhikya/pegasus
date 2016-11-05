@@ -179,7 +179,7 @@ get_message(<<"19">>,TransactionRef )->Title  = <<"SIGNATURE NOT PROVIDED">>,
 get_message(<<"20">>,TransactionRef )->Title  = <<"DUPLICATE VENDOR REFERENCE AT PEGPAY">>,
   send_alarm(Title,TransactionRef),
   <<"duplicate transaction">>;
-get_message(<<"21">>,TransactionRef )->Title  = <<"SUSPECTED DOUBLE POSTING AT PEGPAY">>,
+get_message(<<"21">>,_TransactionRef )-> _T = <<"SUSPECTED DOUBLE POSTING AT PEGPAY">>,
   <<"SUSPECTED DOUBLE POSTING">>;
 get_message(<<"22">>,TransactionRef )->Title  = <<"ORIGINAL VENDOR TRANSACTION REFERENCE NOT SUPPLIED">>,
   send_alarm(Title,TransactionRef),

@@ -14,15 +14,15 @@
 -export([get_settings/0,get_alarm_emails/0,get_private_key/0]).
 get_settings() ->
   {ok, ApiUsername} = case application:get_env(pegasus,pegasus_apiusername) of
-                        undefined -> {ok, <<"CHAPCHAP">>};
+                        undefined -> {ok, "CHAPCHAP"};
                         A -> A
                       end,
   {ok, APIPassword} = case application:get_env(pegasus,pegasus_apipassword) of
-                        undefined -> {ok, <<"07C06VC857">>};
+                        undefined -> {ok, "07C06VC857"};
                         B -> B
                       end,
   {ok, Url} = case application:get_env(pegasus,pegasus_url) of
-                undefined -> {ok, "https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"};
+                undefined -> {ok, "https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"};
                 E -> E
               end,
   {ok, PrivateKey} = case application:get_env(private_key_password) of
@@ -42,8 +42,7 @@ get_alarm_emails() ->
   Emails.
 
 get_private_key() ->
-  {ok, PrivateKey} = case application:get_env(pegasus,private_key) of
+   case application:get_env(pegasus,private_key) of
                    undefined -> {error,not_set};
-                   A -> A
-                 end,
-  PrivateKey.
+                       {ok, PrivateKey}  ->  {ok, PrivateKey}
+   end.

@@ -10,6 +10,7 @@
 -author("mb-spare").
 
 -include("../include/pegasus_app_common.hrl").
+-include_lib("public_key/include/public_key.hrl").
 -include("../include/response.hrl").
 %% API
 -export([
@@ -35,8 +36,9 @@ create_private_key() ->
   {ok, PemBin} = file:read_file(get_priv_key_file()),
   [RSAEntry] = public_key:pem_decode(PemBin),
   PrivateKey = public_key:pem_entry_decode(RSAEntry, "chap4yopayments"),
-  application:set_env(pegasus, private_key, PrivateKey),
-  PrivateKey
+  RsaKey = public_key:der_decode('RSAPrivateKey', PrivateKey#'PrivateKeyInfo'.privateKey),
+  application:set_env(pegasus, private_key, RsaKey),
+  RsaKey
 .
 
 create_public_key() ->
@@ -126,7 +128,6 @@ get_signature(
     Amount ++
     Narration ++
     TransactionType,
-
   RawSHA = crypto:hash(sha, Raw),
   RawEnrypt = encrypt(RawSHA),
   base64:encode(RawEnrypt).

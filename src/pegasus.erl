@@ -20,7 +20,6 @@
   authenticate/1,
   check_transaction_status/1,
   confirmation_poll/1
-
 ]).
 
 -spec(get_details(#payment{}) ->
@@ -39,21 +38,12 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
         % Optional:
         'QueryField2' = Param,%%Kampala
         % Optional:
-        'QueryField3' = "?",
-        % Optional:
         'QueryField4' = Bill, %NWSC
         % Optional:
         'QueryField5' = Settings#pegasus_settings.api_username,
         % Optional:
-        'QueryField6' = Settings#pegasus_settings.api_password,
-        % Optional:
-        'QueryField7' = "?",
-        % Optional:
-        'QueryField8' = "?",
-        % Optional:
-        'QueryField9' = "?",
-        % Optional:
-        'QueryField10' = "?"}},
+        'QueryField6' = Settings#pegasus_settings.api_password
+      }},
     _Soap_headers = [],
     _Soap_options = [{url, Settings#pegasus_settings.url}]),
   case Value of
@@ -64,15 +54,16 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
       case BodyDecoded#query_details_response.status_code of
         <<"0">> ->
           Body = [
-            {customer_ref, BodyDecoded#query_details_response.customer_ref},
-            {customer_name, BodyDecoded#query_details_response.customer_name},
-            {'Area/BouquetCode', BodyDecoded#query_details_response.'Area/BouquetCode'},
-            {outstanding_balance, BodyDecoded#query_details_response.outstanding_balance},
-            {customer_type, BodyDecoded#query_details_response.customer_type},
-            {status_code, BodyDecoded#query_details_response.status_code},
-            {status_description, BodyDecoded#query_details_response.status_description}
+            {<<"TransactionRef">>, TransactionId},
+            {<<"CustomerId">>, BodyDecoded#query_details_response.customer_ref},
+            {<<"Biller">>, list_to_binary(Bill)},
+            {<<"CustomerName">>, BodyDecoded#query_details_response.customer_name},
+            {<<"PaymentItem">>,erlang:iolist_to_binary([ list_to_binary(Bill),<<" ">>, list_to_binary(Param)])},
+            {<<"Balance">>, BodyDecoded#query_details_response.outstanding_balance},
+            {<<"Area/BouquetCode">>, BodyDecoded#query_details_response.'Area/BouquetCode'},
+            {<<"CustomerType">>, BodyDecoded#query_details_response.customer_type}
           ],
-          {ok, {BodyDecoded#query_details_response.status_description, BodyDecoded#query_details_response.customer_ref}, Body};
+          {ok, {BodyDecoded#query_details_response.status_description, BodyDecoded#query_details_response.customer_name}, Body};
 
         StatusCode ->
           {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
@@ -113,14 +104,109 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
 %% @end
 -spec(pay_bill(#payment{}) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
-pay_bill(Payment = #payment{email = Email, amount = AmountRaw, customer_id = CustomerId, type = BillID, transaction_id = TransactionId, phone_number = PhoneNumberRaw}) ->
+%% this is to test failure case
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerId, type = test_failed, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw}) ->
+  Settings = pegasus_env_util:get_settings(),
+  {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
+  Amount = integer_to_list(AmountRaw),
+  PaymentDate = pegasus_util:get_payment_date(),
+  Narration = "Paying for " ++ Bill ++ " " ++ Param ++ " of " ++ Amount ++ " via chapchap",
+  TransactionType = pegasus_util:get_transacion_type(Bill),
+  PhoneNumber = binary_to_list(PhoneNumberRaw),
+  TransactionId = binary_to_list(TransactionIdRaw),
+  Email = binary_to_list(EmailRaw),
+
+  Authenticationsignature = pegasus_signature:get_signature(
+    CustomerId,
+    PhoneNumber,
+    TransactionId,
+    Settings,
+    PaymentDate,
+    Amount,
+    Narration,
+    TransactionType
+  ),
+  error_logger:error_msg("Email ~w ~n",[Email]),
+  error_logger:error_msg("Authenticationsignature ~w ~n",[Authenticationsignature]),
+  Value = test_values:get_test_failed_value(),
+    case Value of
+    {ok, 200, _, _, _, _, ReturnedBody} ->
+      BodyDecoded = xml_response:get_post_transaction_response(ReturnedBody),
+      io:format("BodyDecoded ~w ~n", [BodyDecoded]),
+
+      case BodyDecoded#post_transaction_response.status_code of
+        <<"1000">> ->
+          ResultPollStart = confirmation_poll(Payment),
+          case ResultPollStart of
+            {ok, _} ->
+              Body = [
+                {receipt_id, BodyDecoded#post_transaction_response.peg_pay_id},
+                {status_code, BodyDecoded#post_transaction_response.status_code},
+                {status_description, BodyDecoded#post_transaction_response.status_description}
+              ],
+              {ok, {BodyDecoded#post_transaction_response.status_description, BodyDecoded#post_transaction_response.peg_pay_id}, Body};
+            {error, Error3} -> {error, <<"failed to initialize ">>, Error3}
+          end;
+        StatusCode ->
+          {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
+      end
+  end;
+%% this is to test success case
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerId, type = Type, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw})
+  when Type =:= test orelse Type =:= test_failed_poll ->
+  Settings = pegasus_env_util:get_settings(),
+  {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
+  Amount = integer_to_list(AmountRaw),
+  PaymentDate = pegasus_util:get_payment_date(),
+  Narration = "Paying for " ++ Bill ++ " " ++ Param ++ " of " ++ Amount ++ " via chapchap",
+  TransactionType = pegasus_util:get_transacion_type(Bill),
+  PhoneNumber = binary_to_list(PhoneNumberRaw),
+  TransactionId = binary_to_list(TransactionIdRaw),
+  Email = binary_to_list(EmailRaw),
+  Authenticationsignature = pegasus_signature:get_signature(
+    CustomerId,
+    PhoneNumber,
+    TransactionId,
+    Settings,
+    PaymentDate,
+    Amount,
+    Narration,
+    TransactionType
+  ),
+  error_logger:error_msg("Email ~w ~n",[Email]),
+  error_logger:error_msg("Authenticationsignature ~w ~n",[Authenticationsignature]),
+  Value = test_values:get_test_success_value(),
+  case Value of
+    {ok, 200, _, _, _, _, ReturnedBody} ->
+      BodyDecoded = xml_response:get_post_transaction_response(ReturnedBody),
+      io:format("BodyDecoded ~w ~n", [BodyDecoded]),
+      case BodyDecoded#post_transaction_response.status_code of
+        <<"1000">> ->
+          ResultPollStart = confirmation_poll(Payment),
+          case ResultPollStart of
+            {ok, _} ->
+              Body = [
+                {receipt_id, BodyDecoded#post_transaction_response.peg_pay_id},
+                {status_code, BodyDecoded#post_transaction_response.status_code},
+                {status_description, BodyDecoded#post_transaction_response.status_description}
+              ],
+              {ok, {BodyDecoded#post_transaction_response.status_description, BodyDecoded#post_transaction_response.peg_pay_id}, Body};
+            {error, Error3} -> {error, <<"failed to initialize ">>, Error3}
+          end;
+        StatusCode ->
+          {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
+      end
+  end;
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerId, type = BillID, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw}) ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(BillID),
-  Amount  = integer_to_list(AmountRaw),
+  Amount = integer_to_list(AmountRaw),
   PaymentDate = pegasus_util:get_payment_date(),
-  Narration = "Paying for "++Bill ++ " "++ Param ++ " of " ++Amount ++ " via chapchap",
-  TransactionType =pegasus_util:get_transacion_type(Bill),
-  PhoneNumber =binary_to_list(PhoneNumberRaw),
+  Narration = "Paying for " ++ Bill ++ " " ++ Param ++ " of " ++ Amount ++ " via chapchap",
+  TransactionType = pegasus_util:get_transacion_type(Bill),
+  PhoneNumber = binary_to_list(PhoneNumberRaw),
+  TransactionId = binary_to_list(TransactionIdRaw),
+  Email = binary_to_list(EmailRaw),
 
 %%  dataToSign (CustRef + CustName + CustomerTel +
 %%    VendorTransactionID + VendorCode + Password + PaymentDate + Teller +
@@ -129,17 +215,17 @@ pay_bill(Payment = #payment{email = Email, amount = AmountRaw, customer_id = Cus
 %%PostField5 + PostField14 + PostField7 + PostField18 + PostField8)
 
   Authenticationsignature = pegasus_signature:get_signature(
-      CustomerId,
-      PhoneNumber,
-      TransactionId,
-      Settings,
-      PaymentDate,
-       Amount,
-      Narration,
-      TransactionType
-    ),
-  Value = 'PegPay_client':'PostTransaction'(
-    #'PostTransaction'{
+    CustomerId,
+    PhoneNumber,
+    TransactionId,
+    Settings,
+    PaymentDate,
+    Amount,
+    Narration,
+    TransactionType
+  ),
+  Value = 'PegPay_client':'PrepaidVendorPostTransaction'(
+    #'PrepaidVendorPostTransaction'{
       % Optional:
       trans =
       #'TransactionRequest'{
@@ -164,7 +250,7 @@ pay_bill(Payment = #payment{email = Email, amount = AmountRaw, customer_id = Cus
         % Optional:
         'PostField10' = Settings#pegasus_settings.api_password,
         % Optional:
-        'PostField11' =PhoneNumber, %% CustomerTel
+        'PostField11' = PhoneNumber, %% CustomerTel
         % Optional:
         'PostField12' = "0",%%Reversal (is 0 for Prepaid Vendors)
         % Optional:
@@ -248,7 +334,8 @@ check_transaction_status(TransactionId) ->
             {receipt, BodyDecoded#get_status_response.receipt}
           ],
           {ok, {BodyDecoded#get_status_response.status_description, BodyDecoded#get_status_response.receipt}, Body};
-
+        <<"1000">> ->
+          {pending, pegasus_util:get_message(<<"1000">>, TransactionId), BodyDecoded};
         StatusCode ->
           {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
       end;
@@ -342,30 +429,36 @@ confirmation_poll(Payment = #payment{phone_number = _PhoneNumber, archive = Arch
       {error, Error1}
   end.
 
-poll(PeriodicState = #periodic_state{type = test}) ->
-  poll_internal(fun check_transaction_test/1, PeriodicState);
-poll(PeriodicState = #periodic_state{type = test_pending, number_of_calls = N}) ->
+poll(PeriodicState = #periodic_state{type = test, number_of_calls = N}) ->
   if
     N < 3 -> poll_internal(fun check_transaction_test_pending/1, PeriodicState);
     true -> poll_internal(fun check_transaction_test/1, PeriodicState)
   end;
-poll(PeriodicState = #periodic_state{type = test_failed, number_of_calls = N}) ->
+poll(PeriodicState = #periodic_state{type = test_failed_poll}) ->
   poll_internal(fun check_transaction_test_failed/1, PeriodicState);
 poll(PeriodicState) ->
   poll_internal(fun check_transaction_status/1, PeriodicState).
-poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Payment, number_of_calls = N}) ->
+poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Payment}) ->
   Archive = Payment#payment.archive,
   ConfirmCallback = Payment#payment.on_confirm_callback,
-  _IndeterminatCallback = Payment#payment.on_indeterminate_callback,
+  OnFailureCallback = Payment#payment.on_indeterminate_callback,
   case CheckStatusFunction(Payment#payment.transaction_id) of
-    {ok, _, BodyDecoded} ->
+    {ok, {_Description, Receipt}, BodyDecoded} ->
       Archive(<<"transaction SUCCEEDED">>, BodyDecoded),
-      ConfirmCallback(),
+      ConfirmCallback([{<<"receipt">>, Receipt}]),
       PeriodicState#periodic_state{stop = true};
+    {pending, _, Body} ->
+      Archive(<<"still pending">>, Body),
+      PeriodicState;
     {error, Body, <<"1000">>} ->
       Archive(<<"checking status">>, Body),
       PeriodicState;
-    {error, Body, <<"100">>} ->
-      Archive(<<"transaction FAILED">>, Body),
+    {error, Message, <<"100">>} ->
+      OnFailureCallback([{<<"error_message">>, <<" ">>}]),
+      Archive(<<"transaction FAILED">>, Message),
+      PeriodicState#periodic_state{stop = true};
+    {error, Messagex, _} ->
+      OnFailureCallback([{<<"error_message">>, Messagex}]),
+      Archive(<<"transaction ERROR">>, Messagex),
       PeriodicState#periodic_state{stop = true}
   end.

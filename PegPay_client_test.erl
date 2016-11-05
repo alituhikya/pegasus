@@ -9,7 +9,7 @@
         #'GetServerStatus'{
 },
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'GetTransactionDetails'() -> 
     'PegPay_client':'GetTransactionDetails'(
@@ -38,7 +38,7 @@
                     % Optional:
                     'QueryField10' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'QuerySchoolDetails'() -> 
     'PegPay_client':'QuerySchoolDetails'(
@@ -67,7 +67,7 @@
                     % Optional:
                     'QueryField10' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'QueryCustomerDetails'() -> 
     'PegPay_client':'QueryCustomerDetails'(
@@ -96,7 +96,7 @@
                     % Optional:
                     'QueryField10' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'PostTransaction'() -> 
     'PegPay_client':'PostTransaction'(
@@ -173,7 +173,7 @@
                     % Optional:
                     'PostField34' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'GetPayTVBouquetDetails'() -> 
     'PegPay_client':'GetPayTVBouquetDetails'(
@@ -202,7 +202,7 @@
                     % Optional:
                     'QueryField10' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'ReactivatePayTvCard'() -> 
     'PegPay_client':'ReactivatePayTvCard'(
@@ -231,7 +231,7 @@
                     % Optional:
                     'QueryField10' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'UploadEndOfDayReport'() -> 
     'PegPay_client':'UploadEndOfDayReport'(
@@ -253,7 +253,7 @@
             % Optional:
             'Password' = "?"},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'PrepaidVendorPostTransaction'() -> 
     'PegPay_client':'PrepaidVendorPostTransaction'(
@@ -330,7 +330,7 @@
                     % Optional:
                     'PostField34' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'ReversePrepaidTransaction'() -> 
     'PegPay_client':'ReversePrepaidTransaction'(
@@ -407,5 +407,5 @@
                     % Optional:
                     'PostField34' = "?"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 

@@ -9,10 +9,9 @@
 -module(xml_response).
 -author("mb-spare").
 -include("../include/response.hrl").
--include("../include/response_not_shared.hrl").
 
 %% API
--export([get_details_response/1, get_post_transaction_response/1, get_status_response/1]).
+-export([get_details_response/1, get_post_transaction_response/1, get_status_response/1,get_response/1]).
 
 get_details_response(Raw) ->
   ParmsList = core_util:decode_xml_params(Raw),
@@ -36,7 +35,8 @@ get_status_response(Raw) ->
   ParmsList = core_util:decode_xml_params(Raw),
   Body = get_body(ParmsList),
   GetTransactionDetailsResponse = getValue(<<"GetTransactionDetailsResponse">>, Body),
-  GetTransactionDetailsResult = getValue(<<"GetTransactionDetailsResponse">>, GetTransactionDetailsResponse),
+  GetTransactionDetailsResult = getValue(<<"GetTransactionDetailsResult">>, GetTransactionDetailsResponse),
+  error_logger:error_msg("GetTransactionDetailsResult ~w ~n",[GetTransactionDetailsResult]),
   #get_status_response{
     status_code = getValue(<<"ResponseField6">>, GetTransactionDetailsResult),
     status_description = getValue(<<"ResponseField7">>, GetTransactionDetailsResult),
@@ -45,12 +45,17 @@ get_status_response(Raw) ->
 
 .
 
+get_response(Raw)->
+  ParmsList = core_util:decode_xml_params(Raw),
+  get_body(ParmsList).
+
 
 get_post_transaction_response(Raw) ->
   ParmsList = core_util:decode_xml_params(Raw),
   Body = get_body(ParmsList),
-  PostTransactionResponse = getValue(<<"PostTransactionResponse">>, Body),
-  PostTransactionResult = getValue(<<"PostTransactionResult">>, PostTransactionResponse),
+
+  PostTransactionResponse = getValue(<<"PrepaidVendorPostTransactionResponse">>, Body),
+  PostTransactionResult = getValue(<<"PrepaidVendorPostTransactionResult">>, PostTransactionResponse),
   #post_transaction_response{
     status_code = getValue(<<"ResponseField6">>, PostTransactionResult),
     status_description = getValue(<<"ResponseField7">>, PostTransactionResult),
