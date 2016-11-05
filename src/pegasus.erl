@@ -105,7 +105,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
 -spec(pay_bill(#payment{}) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 %% this is to test failure case
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerId, type = test_failed, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw}) ->
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = test_failed, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw,customer_details = CustomerDetails}) ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
   Amount = integer_to_list(AmountRaw),
@@ -116,8 +116,13 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   TransactionId = binary_to_list(TransactionIdRaw),
   Email = binary_to_list(EmailRaw),
 
+  {<<"CustomerName">>, CustomerNameRaw} = lists:keyfind(<<"CustomerName">>, 1, CustomerDetails),
+  CustomerName = binary_to_list(CustomerNameRaw),
+  CustomerId = binary_to_list(CustomerIdRaw),
+
   Authenticationsignature = pegasus_signature:get_signature(
     CustomerId,
+    CustomerName,
     PhoneNumber,
     TransactionId,
     Settings,
@@ -152,7 +157,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
       end
   end;
 %% this is to test success case
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerId, type = Type, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw})
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = Type, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw,customer_details = CustomerDetails})
   when Type =:= test orelse Type =:= test_failed_poll ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
@@ -163,8 +168,13 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   PhoneNumber = binary_to_list(PhoneNumberRaw),
   TransactionId = binary_to_list(TransactionIdRaw),
   Email = binary_to_list(EmailRaw),
+  {<<"CustomerName">>, CustomerNameRaw} = lists:keyfind(<<"CustomerName">>, 1, CustomerDetails),
+  CustomerName = binary_to_list(CustomerNameRaw),
+  CustomerId = binary_to_list(CustomerIdRaw),
+
   Authenticationsignature = pegasus_signature:get_signature(
     CustomerId,
+    CustomerName,
     PhoneNumber,
     TransactionId,
     Settings,
@@ -197,7 +207,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
           {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
       end
   end;
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerId, type = BillID, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw}) ->
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = BillID, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw,customer_details = CustomerDetails}) ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(BillID),
   Amount = integer_to_list(AmountRaw),
@@ -214,8 +224,13 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
 %%(PostField1 + PostField2 + PostField11 + PostField20 + PostField9 + PostField10 +
 %%PostField5 + PostField14 + PostField7 + PostField18 + PostField8)
 
+  {<<"CustomerName">>, CustomerNameRaw} = lists:keyfind(<<"CustomerName">>, 1, CustomerDetails),
+  CustomerName = binary_to_list(CustomerNameRaw),
+  CustomerId = binary_to_list(CustomerIdRaw),
+
   Authenticationsignature = pegasus_signature:get_signature(
     CustomerId,
+    CustomerName,
     PhoneNumber,
     TransactionId,
     Settings,
@@ -230,9 +245,9 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
       trans =
       #'TransactionRequest'{
         % Optional:
-        'PostField1' = CustomerId#query_details_response.customer_ref,
+        'PostField1' = CustomerId,
         % Optional:
-        'PostField2' = CustomerId#query_details_response.customer_name,
+        'PostField2' = CustomerName,
         % Optional:
         'PostField3' = Param,
         % Optional:

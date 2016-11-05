@@ -15,7 +15,7 @@
 %% API
 -export([
   initiate/0,
-  get_signature/8,
+  get_signature/9,
   get_private_key/0,
   create_private_key/0,
   decrypt/1
@@ -98,6 +98,7 @@ decrypt(Encrypted) ->
 %%% @end
 -spec(get_signature(
     CustomerId :: string(),
+    CustomerName:: string(),
     PhoneNumber :: string(),
     TransactionId :: string(),
     Settings :: string(),
@@ -108,6 +109,7 @@ decrypt(Encrypted) ->
 ) -> string()).
 get_signature(
     CustomerId,
+    CustomerName,
     PhoneNumber,
     TransactionId,
     Settings,
@@ -117,8 +119,8 @@ get_signature(
     TransactionType
 
 ) ->
-  Raw = CustomerId#query_details_response.customer_ref ++
-    CustomerId#query_details_response.customer_name ++
+  Raw = CustomerId++
+    CustomerName ++
     PhoneNumber ++
     TransactionId ++
     Settings#pegasus_settings.api_username ++

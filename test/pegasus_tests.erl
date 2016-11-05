@@ -10,7 +10,7 @@
 -author("mb-spare").
 
 -include_lib("eunit/include/eunit.hrl").
--include("../deps/core/include/core_app_common.hrl").
+-include("../../core/include/core_app_common.hrl").
 -include("../include/response.hrl").
 pegasus_test()->
   application:start(asn1),
@@ -27,11 +27,12 @@ pegasus_test()->
   PhoneNumber = <<"256756719888">>,
   {ok, {StatusDescription, CustomerName}, Body} = pegasus:get_details(#payment{customer_id = CustomerId, type = BillId, transaction_id = TransactionId}),
   ?debugFmt("StatusDescription ~w CustomerName ~w Body ~w ~n",[StatusDescription,CustomerName,Body]),
-  CustomerIdRecord = #query_details_response{customer_name = binary_to_list(CustomerName),customer_ref = binary_to_list(CustomerId)},
+  CustomerDetails = [{<<"CustomerName">>, CustomerName}],
   {ok, {Description, Peg_pay_id}, Body2} = pegasus:pay_bill(#payment{
     email = Email,
     amount = Amount,
-    customer_id = CustomerIdRecord,
+    customer_id = CustomerId,
+    customer_details = CustomerDetails,
     type = BillId,
     transaction_id = TransactionId,
     phone_number = PhoneNumber,
