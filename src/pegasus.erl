@@ -48,7 +48,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
     _Soap_options = [{url, Settings#pegasus_settings.url}]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
-      BodyDecoded = xml_response:get_details_response(ReturnedBody),
+      BodyDecoded = pegasus_xml_response:get_details_response(ReturnedBody),
       io:format("BodyDecoded ~w ~n", [BodyDecoded]),
 
       case BodyDecoded#query_details_response.status_code of
@@ -136,7 +136,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   Value = test_values:get_test_failed_value(),
     case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
-      BodyDecoded = xml_response:get_post_transaction_response(ReturnedBody),
+      BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
       io:format("BodyDecoded ~w ~n", [BodyDecoded]),
 
       case BodyDecoded#post_transaction_response.status_code of
@@ -188,7 +188,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   Value = test_values:get_test_success_value(),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
-      BodyDecoded = xml_response:get_post_transaction_response(ReturnedBody),
+      BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
       io:format("BodyDecoded ~w ~n", [BodyDecoded]),
       case BodyDecoded#post_transaction_response.status_code of
         <<"1000">> ->
@@ -290,7 +290,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
     _Soap_options = [{url, Settings#pegasus_settings.url}]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
-      BodyDecoded = xml_response:get_post_transaction_response(ReturnedBody),
+      BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
       io:format("BodyDecoded ~w ~n", [BodyDecoded]),
 
       case BodyDecoded#post_transaction_response.status_code of
@@ -338,7 +338,7 @@ check_transaction_status(TransactionId) ->
     _Soap_options = [{url, Settings#pegasus_settings.url}]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
-      BodyDecoded = xml_response:get_status_response(ReturnedBody),
+      BodyDecoded = pegasus_xml_response:get_status_response(ReturnedBody),
       io:format("BodyDecoded ~w ~n", [BodyDecoded]),
 
       case BodyDecoded#get_status_response.status_code of
@@ -382,7 +382,7 @@ check_transaction_test(_) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 check_transaction_test_pending(ExternalReference) ->
 
-  {error, pegasus_util:get_message("1000", ExternalReference), "1000"}.
+  {pending, pegasus_util:get_message("1000", ExternalReference), "1000"}.
 
 -spec(check_transaction_test_failed(ExternalReference :: binary()) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
@@ -421,7 +421,7 @@ authenticate(production, #core_request{args_list = ArgsList}) ->
       {error, <<"signature authentiacation failed">>}
   end.
 
-confirmation_poll(Payment = #payment{phone_number = _PhoneNumber, archive = Archive, long_poll_fun = Type, start_after = StartAfter, poll_interval = Interval, max = Max}) ->
+confirmation_poll(Payment = #payment{phone_number = _PhoneNumber, archive = Archive, type = Type, start_after = StartAfter, poll_interval = Interval, max = Max}) ->
   StartPoll = periodic_sup:start_periodic(
     #periodic_state{
       task = fun poll/1,
@@ -465,10 +465,10 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
     {pending, _, Body} ->
       Archive(<<"still pending">>, Body),
       PeriodicState;
-    {error, Body, <<"1000">>} ->
+    {error, Body, "1000"} ->
       Archive(<<"checking status">>, Body),
       PeriodicState;
-    {error, Message, <<"100">>} ->
+    {error, Message, "100"} ->
       OnFailureCallback([{<<"error_message">>, <<" ">>}]),
       Archive(<<"transaction FAILED">>, Message),
       PeriodicState#periodic_state{stop = true};

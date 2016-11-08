@@ -18,7 +18,7 @@
 },
     _Soap_headers = [],
     _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]),
-    xml_response:get_response(ReturnedBody).
+    pegasus_xml_response:get_response(ReturnedBody).
 
 'GetTransactionDetails'() ->
     application:start(asn1),

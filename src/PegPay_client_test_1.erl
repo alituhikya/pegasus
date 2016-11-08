@@ -15,7 +15,7 @@
 },
     _Soap_headers = [],
     _Soap_options = [{url,"https://41.190.131.222:8896/testpegpayapi/PegPay.asmx"}]),
-xml_response:get_response(ReturnedBody)
+pegasus_xml_response:get_response(ReturnedBody)
 .
 
 'GetTransactionDetails'() -> 
@@ -109,7 +109,7 @@ xml_response:get_response(ReturnedBody)
                     'QueryField10' = "?"}},
     _Soap_headers = [],
     _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]),
-    xml_response:get_response(fast_xml,ReturnedBody)
+    pegasus_xml_response:get_response(fast_xml,ReturnedBody)
 .
 
 'PostTransaction'() -> 

@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 09. Jul 2016 7:00 AM
 %%%-------------------------------------------------------------------
--module(xml_response).
+-module(pegasus_xml_response).
 -author("mb-spare").
 -include("../include/response.hrl").
 
