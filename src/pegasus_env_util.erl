@@ -23,6 +23,7 @@ get_settings() ->
                       end,
   {ok, Url} = case application:get_env(pegasus,pegasus_url) of
                 undefined -> {ok, "https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"};
+                %% undefined -> {ok, "https://197.221.144.222:8019/TestPegPayApi/PegPay.asmx"};
                 E -> E
               end,
   {ok, PrivateKey} = case application:get_env(private_key_password) of
