@@ -32,6 +32,8 @@ get_type_and_param(<<"postpaid_umeme">>) ->
 get_type_and_param(<<"prepaid_umeme">>) ->
   {"UMEME","PREPAID"};
 %% NWSC Entebbe
+
+%% old bill ids were mis-spelt but we keep them for backward compatibility
 get_type_and_param(<<"nswc_entebbe">>) ->
   {"NWSC", "Entebbe"};
 %% NWSC Iganga
@@ -58,6 +60,40 @@ get_type_and_param(<<"nswc_mukono">>) ->
 %% Other NWSC Areas 249379
 get_type_and_param(<<"nswc_other_areas">>) ->
   {"NWSC","Others"};
+
+
+
+%% new bill ids  for NWSC with correct spelling
+get_type_and_param(<<"nwsc_entebbe">>) ->
+  {"NWSC", "Entebbe"};
+%% NWSC Iganga
+get_type_and_param(<<"nwsc_iganga">>) ->
+  {"NWSC","Iganga"};
+%% NWSC Jinja 249373
+get_type_and_param(<<"nwsc_jinja">>) ->
+  {"NWSC","Jinja"};
+%% NWSC Kajjansi 249374
+get_type_and_param(<<"nwsc_kajjansi">>) ->
+  {"NWSC","Kajjansi"};
+%% NWSC Kampala 249371
+get_type_and_param(<<"nwsc_kampala">>) ->
+  {"NWSC","Kampala"};
+%% NWSC Kawuku
+get_type_and_param(<<"nwsc_kawuku">>) ->
+  {"NWSC","Kawuku"};
+%% NWSC Lugazi
+get_type_and_param(<<"nwsc_lugazi">>) ->
+  {"NWSC","Lugazi"};
+%% NWSC Mukono 249378
+get_type_and_param(<<"nwsc_mukono">>) ->
+  {"NWSC","Mukono"};
+%% Other NWSC Areas 249379
+get_type_and_param(<<"nwsc_other_areas">>) ->
+  {"NWSC","Others"};
+
+
+
+
 %% DStv Access &#40;38,000&#47;&#61;&#41; 21552
 get_type_and_param(<<"dstv_access">>) ->
 {"DSTV",""};

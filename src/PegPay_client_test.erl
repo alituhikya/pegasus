@@ -11,7 +11,8 @@
     application:start(asn1),
     application:start(crypto),
     application:start(public_key),
-    application:start(ssl),application:start(ibrowse),
+    application:start(ssl),
+    application:start(ibrowse),
     application:start(fast_xml),
     {ok,200,_,_,_,_,ReturnedBody}  =   'PegPay_client':'GetServerStatus'(
         #'GetServerStatus'{

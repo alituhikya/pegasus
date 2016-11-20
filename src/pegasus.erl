@@ -19,6 +19,7 @@
   pay_bill/1,
   authenticate/1,
   check_transaction_status/1,
+get_transaction_status/1,
   confirmation_poll/1
 ]).
 
@@ -321,6 +322,12 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
       {error, <<"fatal error in making contact with service provider, please try again">>, Error2}
   end.
 
+-spec(check_transaction_status(ExternalReference :: binary()) ->
+  {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
+get_transaction_status(#payment{transaction_id = TransactionId}) ->
+  check_transaction_status(TransactionId);
+get_transaction_status(TransactionId) ->
+  check_transaction_status(TransactionId).
 -spec(check_transaction_status(ExternalReference :: binary()) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 check_transaction_status(TransactionId) ->
