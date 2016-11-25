@@ -38,7 +38,7 @@
                     'QueryField6' = Settings#pegasus_settings.api_password,
                     'QueryField10' = "my id"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]),
+    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"},{timeout, 60000}]),
     file:write_file("/tmp/response.xml", io_lib:fwrite("~p.\n", [Response]))
 .
 
@@ -239,27 +239,27 @@
     _Soap_headers = [],
     _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
-'UploadEndOfDayReport'() -> 
-    'PegPay_client':'UploadEndOfDayReport'(
-        #'UploadEndOfDayReport'{
-            % Optional:
-            lstOfTrans = 
-                #'ArrayOfEODTransaction'{
-                    % List with zero or more elements:
-                    'EODTransaction' = [
-                        #'EODTransaction'{
-                            % Optional:
-                            'VendorTranId' = "?",
-                            % Optional:
-                            'Amount' = "?",
-                            % Optional:
-                            'DateTime' = "?"}]},
-            % Optional:
-            'VendorCode' = "?",
-            % Optional:
-            'Password' = "?"},
-    _Soap_headers = [],
-    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
+%%'UploadEndOfDayReport'() ->
+%%    'PegPay_client':'UploadEndOfDayReport'(
+%%        #'UploadEndOfDayReport'{
+%%            % Optional:
+%%            lstOfTrans =
+%%                #'ArrayOfEODTransaction'{
+%%                    % List with zero or more elements:
+%%                    'EODTransaction' = [
+%%                        #'EODTransaction'{
+%%                            % Optional:
+%%                            'VendorTranId' = "?",
+%%                            % Optional:
+%%                            'Amount' = "?",
+%%                            % Optional:
+%%                            'DateTime' = "?"}]},
+%%            % Optional:
+%%            'VendorCode' = "?",
+%%            % Optional:
+%%            'Password' = "?"},
+%%    _Soap_headers = [],
+%%    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]).
 
 'PrepaidVendorPostTransaction'() ->
 

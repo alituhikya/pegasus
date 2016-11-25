@@ -21,6 +21,8 @@
 {
 	status_code,
 	status_description,
-	receipt
+	receipt,
+	recharge_pin,
+	company_ref
 }
 ).

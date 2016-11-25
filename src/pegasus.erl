@@ -19,7 +19,7 @@
   pay_bill/1,
   authenticate/1,
   check_transaction_status/1,
-get_transaction_status/1,
+  get_transaction_status/1,
   confirmation_poll/1
 ]).
 
@@ -59,7 +59,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
             {<<"CustomerId">>, BodyDecoded#query_details_response.customer_ref},
             {<<"Biller">>, list_to_binary(Bill)},
             {<<"CustomerName">>, BodyDecoded#query_details_response.customer_name},
-            {<<"PaymentItem">>,erlang:iolist_to_binary([ list_to_binary(Bill),<<" ">>, list_to_binary(Param)])},
+            {<<"PaymentItem">>, erlang:iolist_to_binary([list_to_binary(Bill), <<" ">>, list_to_binary(Param)])},
             {<<"Balance">>, BodyDecoded#query_details_response.outstanding_balance},
             {<<"Area/BouquetCode">>, BodyDecoded#query_details_response.'Area/BouquetCode'},
             {<<"CustomerType">>, BodyDecoded#query_details_response.customer_type}
@@ -106,7 +106,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
 -spec(pay_bill(#payment{}) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 %% this is to test failure case
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = test_failed, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw,customer_details = CustomerDetails}) ->
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = test_failed, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw, customer_details = CustomerDetails}) ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
   Amount = integer_to_list(AmountRaw),
@@ -132,10 +132,10 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
     Narration,
     TransactionType
   ),
-  error_logger:error_msg("Email ~w ~n",[Email]),
-  error_logger:error_msg("Authenticationsignature ~w ~n",[Authenticationsignature]),
+  error_logger:error_msg("Email ~w ~n", [Email]),
+  error_logger:error_msg("Authenticationsignature ~w ~n", [Authenticationsignature]),
   Value = test_values:get_test_failed_value(),
-    case Value of
+  case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
       io:format("BodyDecoded ~w ~n", [BodyDecoded]),
@@ -158,7 +158,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
       end
   end;
 %% this is to test success case
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = Type, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw,customer_details = CustomerDetails})
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = Type, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw, customer_details = CustomerDetails})
   when Type =:= test orelse Type =:= test_failed_poll ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
@@ -184,8 +184,8 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
     Narration,
     TransactionType
   ),
-  error_logger:error_msg("Email ~w ~n",[Email]),
-  error_logger:error_msg("Authenticationsignature ~w ~n",[Authenticationsignature]),
+  error_logger:error_msg("Email ~w ~n", [Email]),
+  error_logger:error_msg("Authenticationsignature ~w ~n", [Authenticationsignature]),
   Value = test_values:get_test_success_value(),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
@@ -208,7 +208,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
           {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
       end
   end;
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = BillID, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw,customer_details = CustomerDetails}) ->
+pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = BillID, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw, customer_details = CustomerDetails}) ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(BillID),
   Amount = integer_to_list(AmountRaw),
@@ -217,6 +217,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   TransactionType = pegasus_util:get_transacion_type(Bill),
   PhoneNumber = binary_to_list(PhoneNumberRaw),
   TransactionId = binary_to_list(TransactionIdRaw),
+  error_logger:error_msg("Email ~w ~n ", [[Payment#payment.email, EmailRaw]]),
   Email = binary_to_list(EmailRaw),
 
 %%  dataToSign (CustRef + CustName + CustomerTel +
@@ -353,9 +354,11 @@ check_transaction_status(TransactionId) ->
           Body = [
             {status_code, BodyDecoded#get_status_response.status_code},
             {status_description, BodyDecoded#get_status_response.status_description},
-            {receipt, BodyDecoded#get_status_response.receipt}
+            {receipt, BodyDecoded#get_status_response.receipt},
+            {recharge_pin, BodyDecoded#get_status_response.recharge_pin},
+            {company_ref, BodyDecoded#get_status_response.company_ref}
           ],
-          {ok, {BodyDecoded#get_status_response.status_description, BodyDecoded#get_status_response.receipt}, Body};
+          {ok, {BodyDecoded#get_status_response.status_description, BodyDecoded#get_status_response.receipt}, {Body, BodyDecoded}};
         <<"1000">> ->
           {pending, pegasus_util:get_message(<<"1000">>, TransactionId), BodyDecoded};
         StatusCode ->
@@ -465,9 +468,21 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
   ConfirmCallback = Payment#payment.on_confirm_callback,
   OnFailureCallback = Payment#payment.on_indeterminate_callback,
   case CheckStatusFunction(Payment#payment.transaction_id) of
-    {ok, {_Description, Receipt}, BodyDecoded} ->
-      Archive(<<"transaction SUCCEEDED">>, BodyDecoded),
-      ConfirmCallback([{<<"receipt">>, Receipt}]),
+    {ok, {_Description, ReceiptRaw}, {_Body, BodyDecoded}} ->
+      try
+        Archive(<<"transaction SUCCEEDED">>, BodyDecoded),
+        Receipt = case {Payment#payment.type, BodyDecoded#get_status_response.recharge_pin} of
+                    {_, undefined} when is_binary(ReceiptRaw) -> ReceiptRaw;
+                    {<<"prepaid_umeme">>, R} when is_binary(ReceiptRaw) ->
+                      erlang:iolist_to_binary([<<"token: ">>, R, <<"receipt: ">>, ReceiptRaw]);
+                    {_, R2} when is_binary(ReceiptRaw) -> erlang:iolist_to_binary([R2, <<" ">>, ReceiptRaw]);
+                    _-> <<" ">>
+
+                  end,
+        ConfirmCallback([{<<"receipt">>, Receipt}])
+      catch
+        X:Y -> Archive(<<"error in confirmation">>, [X, Y])
+      end,
       PeriodicState#periodic_state{stop = true};
     {pending, _, Body} ->
       Archive(<<"still pending">>, Body),
@@ -476,11 +491,22 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
       Archive(<<"checking status">>, Body),
       PeriodicState;
     {error, Message, "100"} ->
-      OnFailureCallback([{<<"error_message">>, <<" ">>}]),
-      Archive(<<"transaction FAILED">>, Message),
+      try
+        Archive(<<"transaction FAILED">>, Message),
+        OnFailureCallback([{<<"error_message">>, <<" ">>}])
+      catch
+        X1:Y1 -> Archive(<<"error in failure cleanup">>, [X1, Y1])
+      end,
+
       PeriodicState#periodic_state{stop = true};
     {error, Messagex, _} ->
-      OnFailureCallback([{<<"error_message">>, Messagex}]),
-      Archive(<<"transaction ERROR">>, Messagex),
+      try
+        Archive(<<"transaction ERROR">>, Messagex),
+        OnFailureCallback([{<<"error_message">>, Messagex}])
+      catch
+        X2:Y2 ->
+          Archive(<<"error in failure cleanup">>, [X2, Y2])
+      end,
+
       PeriodicState#periodic_state{stop = true}
   end.

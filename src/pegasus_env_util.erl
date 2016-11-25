@@ -18,11 +18,14 @@ get_settings() ->
                         A -> A
                       end,
   {ok, APIPassword} = case application:get_env(pegasus,pegasus_apipassword) of
-                        undefined -> {ok, "07C06VC857"};
+                        undefined -> {ok, "84Y56LO654"};
+                        %undefined -> {ok, "07C06VC857"};
                         B -> B
                       end,
   {ok, Url} = case application:get_env(pegasus,pegasus_url) of
-                undefined -> {ok, "https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"};
+
+                undefined -> {ok, "https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx"};
+                %% undefined -> {ok, "https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"};
                 %% undefined -> {ok, "https://197.221.144.222:8019/TestPegPayApi/PegPay.asmx"};
                 E -> E
               end,

@@ -27,9 +27,7 @@ get_details_response(Raw) ->
     status_code = getValue(<<"ResponseField6">>, QueryCustomerDetailsResult),
     status_description = getValue(<<"ResponseField7">>, QueryCustomerDetailsResult)
 
-  }
-
-.
+  }.
 
 get_status_response(Raw) ->
   ParmsList = core_util:decode_xml_params(Raw),
@@ -40,7 +38,9 @@ get_status_response(Raw) ->
   #get_status_response{
     status_code = getValue(<<"ResponseField6">>, GetTransactionDetailsResult),
     status_description = getValue(<<"ResponseField7">>, GetTransactionDetailsResult),
-    receipt = getValue(<<"ResponseField8">>, GetTransactionDetailsResult)
+    recharge_pin = getValue(<<"ResponseField8">>, GetTransactionDetailsResult),
+    receipt = getValue(<<"ResponseField4">>, GetTransactionDetailsResult),
+    company_ref = getValue(<<"ResponseField9">>,GetTransactionDetailsResult)
   }
 
 .

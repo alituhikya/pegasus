@@ -46,18 +46,6 @@
 
 
 
--record('ReversePrepaidTransactionResponse', {
-	'ReversePrepaidTransactionResult' :: 'Response'() | undefined}).
-
--type 'ReversePrepaidTransactionResponse'() :: #'ReversePrepaidTransactionResponse'{}.
-
-
--record('ReversePrepaidTransaction', {
-	trans :: 'TransactionRequest'() | undefined}).
-
--type 'ReversePrepaidTransaction'() :: #'ReversePrepaidTransaction'{}.
-
-
 -record('PrepaidVendorPostTransactionResponse', {
 	'PrepaidVendorPostTransactionResult' :: 'Response'() | undefined}).
 
@@ -70,34 +58,6 @@
 -type 'PrepaidVendorPostTransaction'() :: #'PrepaidVendorPostTransaction'{}.
 
 
--record('UploadEndOfDayReportResponse', {
-	'UploadEndOfDayReportResult' :: 'Response'() | undefined}).
-
--type 'UploadEndOfDayReportResponse'() :: #'UploadEndOfDayReportResponse'{}.
-
-
--record('EODTransaction', {
-	'VendorTranId' :: string() | undefined,
-	'Amount' :: string() | undefined,
-	'DateTime' :: string() | undefined}).
-
--type 'EODTransaction'() :: #'EODTransaction'{}.
-
-
--record('ArrayOfEODTransaction', {
-	'EODTransaction' :: ['EODTransaction'() | {nil, 'EODTransaction'()}] | undefined}).
-
--type 'ArrayOfEODTransaction'() :: #'ArrayOfEODTransaction'{}.
-
-
--record('UploadEndOfDayReport', {
-	lstOfTrans :: 'ArrayOfEODTransaction'() | undefined,
-	'VendorCode' :: string() | undefined,
-	'Password' :: string() | undefined}).
-
--type 'UploadEndOfDayReport'() :: #'UploadEndOfDayReport'{}.
-
-
 -record('ReactivatePayTvCardResponse', {
 	'ReactivatePayTvCardResult' :: 'Response'() | undefined}).
 
@@ -108,6 +68,18 @@
 	query :: 'QueryRequest'() | undefined}).
 
 -type 'ReactivatePayTvCard'() :: #'ReactivatePayTvCard'{}.
+
+
+-record('ReversePrepaidTransactionResponse', {
+	'ReversePrepaidTransactionResult' :: 'Response'() | undefined}).
+
+-type 'ReversePrepaidTransactionResponse'() :: #'ReversePrepaidTransactionResponse'{}.
+
+
+-record('ReversePrepaidTransaction', {
+	trans :: 'TransactionRequest'() | undefined}).
+
+-type 'ReversePrepaidTransaction'() :: #'ReversePrepaidTransaction'{}.
 
 
 -record('BouquetDetails', {
@@ -144,6 +116,18 @@
 	'PostTransactionResult' :: 'Response'() | undefined}).
 
 -type 'PostTransactionResponse'() :: #'PostTransactionResponse'{}.
+
+
+-record('PostTransaction', {
+	trans :: 'TransactionRequest'() | undefined}).
+
+-type 'PostTransaction'() :: #'PostTransaction'{}.
+
+
+-record('PostSchoolsTransactionResponse', {
+	'PostSchoolsTransactionResult' :: 'Response'() | undefined}).
+
+-type 'PostSchoolsTransactionResponse'() :: #'PostSchoolsTransactionResponse'{}.
 
 
 -record('TransactionRequest', {
@@ -185,10 +169,22 @@
 -type 'TransactionRequest'() :: #'TransactionRequest'{}.
 
 
--record('PostTransaction', {
+-record('PostSchoolsTransaction', {
 	trans :: 'TransactionRequest'() | undefined}).
 
--type 'PostTransaction'() :: #'PostTransaction'{}.
+-type 'PostSchoolsTransaction'() :: #'PostSchoolsTransaction'{}.
+
+
+-record('QuerySchoolDetailsResponse', {
+	'QuerySchoolDetailsResult' :: 'Response'() | undefined}).
+
+-type 'QuerySchoolDetailsResponse'() :: #'QuerySchoolDetailsResponse'{}.
+
+
+-record('QuerySchoolDetails', {
+	query :: 'QueryRequest'() | undefined}).
+
+-type 'QuerySchoolDetails'() :: #'QuerySchoolDetails'{}.
 
 
 -record('QueryCustomerDetailsResponse', {
@@ -203,16 +199,16 @@
 -type 'QueryCustomerDetails'() :: #'QueryCustomerDetails'{}.
 
 
--record('QuerySchoolDetailsResponse', {
-	'QuerySchoolDetailsResult' :: 'Response'() | undefined}).
+-record('GetPrepaidVendorDetailsResponse', {
+	'GetPrepaidVendorDetailsResult' :: 'Response'() | undefined}).
 
--type 'QuerySchoolDetailsResponse'() :: #'QuerySchoolDetailsResponse'{}.
+-type 'GetPrepaidVendorDetailsResponse'() :: #'GetPrepaidVendorDetailsResponse'{}.
 
 
--record('QuerySchoolDetails', {
+-record('GetPrepaidVendorDetails', {
 	query :: 'QueryRequest'() | undefined}).
 
--type 'QuerySchoolDetails'() :: #'QuerySchoolDetails'{}.
+-type 'GetPrepaidVendorDetails'() :: #'GetPrepaidVendorDetails'{}.
 
 
 -record('Response', {
@@ -274,7 +270,7 @@
                     "http://PegPayPaymentsApi/",
                     "http://schemas.xmlsoap.org/soap/envelope/",undefined,
                     undefined,
-                    "https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx",
+                    "https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx",
                     "PegPaySoap","PegPaySoap","PegPaySoap",
                     [{op,"GetServerStatus",'GetServerStatus',
                       "http://PegPayPaymentsApi/GetServerStatus",undefined,
@@ -284,14 +280,22 @@
                       "http://PegPayPaymentsApi/GetTransactionDetails",
                       undefined,request_response,'GetTransactionDetails',
                       'GetTransactionDetailsResponse',undefined},
-                     {op,"QuerySchoolDetails",'QuerySchoolDetails',
-                      "http://PegPayPaymentsApi/QuerySchoolDetails",undefined,
-                      request_response,'QuerySchoolDetails',
-                      'QuerySchoolDetailsResponse',undefined},
+                     {op,"GetPrepaidVendorDetails",'GetPrepaidVendorDetails',
+                      "http://PegPayPaymentsApi/GetPrepaidVendorDetails",
+                      undefined,request_response,'GetPrepaidVendorDetails',
+                      'GetPrepaidVendorDetailsResponse',undefined},
                      {op,"QueryCustomerDetails",'QueryCustomerDetails',
                       "http://PegPayPaymentsApi/QueryCustomerDetails",
                       undefined,request_response,'QueryCustomerDetails',
                       'QueryCustomerDetailsResponse',undefined},
+                     {op,"QuerySchoolDetails",'QuerySchoolDetails',
+                      "http://PegPayPaymentsApi/QuerySchoolDetails",undefined,
+                      request_response,'QuerySchoolDetails',
+                      'QuerySchoolDetailsResponse',undefined},
+                     {op,"PostSchoolsTransaction",'PostSchoolsTransaction',
+                      "http://PegPayPaymentsApi/PostSchoolsTransaction",
+                      undefined,request_response,'PostSchoolsTransaction',
+                      'PostSchoolsTransactionResponse',undefined},
                      {op,"PostTransaction",'PostTransaction',
                       "http://PegPayPaymentsApi/PostTransaction",undefined,
                       request_response,'PostTransaction',
@@ -300,25 +304,21 @@
                       "http://PegPayPaymentsApi/GetPayTVBouquetDetails",
                       undefined,request_response,'GetPayTVBouquetDetails',
                       'GetPayTVBouquetDetailsResponse',undefined},
+                     {op,"ReversePrepaidTransaction",
+                      'ReversePrepaidTransaction',
+                      "http://PegPayPaymentsApi/ReversePrepaidTransaction",
+                      undefined,request_response,'ReversePrepaidTransaction',
+                      'ReversePrepaidTransactionResponse',undefined},
                      {op,"ReactivatePayTvCard",'ReactivatePayTvCard',
                       "http://PegPayPaymentsApi/ReactivatePayTvCard",
                       undefined,request_response,'ReactivatePayTvCard',
                       'ReactivatePayTvCardResponse',undefined},
-                     {op,"UploadEndOfDayReport",'UploadEndOfDayReport',
-                      "http://PegPayPaymentsApi/UploadEndOfDayReport",
-                      undefined,request_response,'UploadEndOfDayReport',
-                      'UploadEndOfDayReportResponse',undefined},
                      {op,"PrepaidVendorPostTransaction",
                       'PrepaidVendorPostTransaction',
                       "http://PegPayPaymentsApi/PrepaidVendorPostTransaction",
                       undefined,request_response,
                       'PrepaidVendorPostTransaction',
-                      'PrepaidVendorPostTransactionResponse',undefined},
-                     {op,"ReversePrepaidTransaction",
-                      'ReversePrepaidTransaction',
-                      "http://PegPayPaymentsApi/ReversePrepaidTransaction",
-                      undefined,request_response,'ReversePrepaidTransaction',
-                      'ReversePrepaidTransactionResponse',undefined}],
+                      'PrepaidVendorPostTransactionResponse',undefined}],
                     {model,
                      [{type,'_document',sequence,
                        [{el,
@@ -331,14 +331,24 @@
                           {alt,'GetTransactionDetailsResponse',
                            'GetTransactionDetailsResponse',[],1,1,true,
                            undefined},
-                          {alt,'QuerySchoolDetails','QuerySchoolDetails',[],
-                           1,1,true,undefined},
-                          {alt,'QuerySchoolDetailsResponse',
-                           'QuerySchoolDetailsResponse',[],1,1,true,undefined},
+                          {alt,'GetPrepaidVendorDetails',
+                           'GetPrepaidVendorDetails',[],1,1,true,undefined},
+                          {alt,'GetPrepaidVendorDetailsResponse',
+                           'GetPrepaidVendorDetailsResponse',[],1,1,true,
+                           undefined},
                           {alt,'QueryCustomerDetails','QueryCustomerDetails',
                            [],1,1,true,undefined},
                           {alt,'QueryCustomerDetailsResponse',
                            'QueryCustomerDetailsResponse',[],1,1,true,
+                           undefined},
+                          {alt,'QuerySchoolDetails','QuerySchoolDetails',[],
+                           1,1,true,undefined},
+                          {alt,'QuerySchoolDetailsResponse',
+                           'QuerySchoolDetailsResponse',[],1,1,true,undefined},
+                          {alt,'PostSchoolsTransaction',
+                           'PostSchoolsTransaction',[],1,1,true,undefined},
+                          {alt,'PostSchoolsTransactionResponse',
+                           'PostSchoolsTransactionResponse',[],1,1,true,
                            undefined},
                           {alt,'PostTransaction','PostTransaction',[],1,1,
                            true,undefined},
@@ -349,41 +359,24 @@
                           {alt,'GetPayTVBouquetDetailsResponse',
                            'GetPayTVBouquetDetailsResponse',[],1,1,true,
                            undefined},
+                          {alt,'ReversePrepaidTransaction',
+                           'ReversePrepaidTransaction',[],1,1,true,undefined},
+                          {alt,'ReversePrepaidTransactionResponse',
+                           'ReversePrepaidTransactionResponse',[],1,1,true,
+                           undefined},
                           {alt,'ReactivatePayTvCard','ReactivatePayTvCard',
                            [],1,1,true,undefined},
                           {alt,'ReactivatePayTvCardResponse',
                            'ReactivatePayTvCardResponse',[],1,1,true,
-                           undefined},
-                          {alt,'UploadEndOfDayReport','UploadEndOfDayReport',
-                           [],1,1,true,undefined},
-                          {alt,'UploadEndOfDayReportResponse',
-                           'UploadEndOfDayReportResponse',[],1,1,true,
                            undefined},
                           {alt,'PrepaidVendorPostTransaction',
                            'PrepaidVendorPostTransaction',[],1,1,true,
                            undefined},
                           {alt,'PrepaidVendorPostTransactionResponse',
                            'PrepaidVendorPostTransactionResponse',[],1,1,true,
-                           undefined},
-                          {alt,'ReversePrepaidTransaction',
-                           'ReversePrepaidTransaction',[],1,1,true,undefined},
-                          {alt,'ReversePrepaidTransactionResponse',
-                           'ReversePrepaidTransactionResponse',[],1,1,true,
                            undefined}],
                          1,1,undefined,2}],
                        [],undefined,undefined,1,1,1,false,undefined},
-                      {type,'ReversePrepaidTransactionResponse',sequence,
-                       [{el,
-                         [{alt,'ReversePrepaidTransactionResult','Response',
-                           [],1,1,true,undefined}],
-                         0,1,undefined,2}],
-                       [],undefined,undefined,2,1,1,undefined,undefined},
-                      {type,'ReversePrepaidTransaction',sequence,
-                       [{el,
-                         [{alt,trans,'TransactionRequest',[],1,1,true,
-                           undefined}],
-                         0,1,undefined,2}],
-                       [],undefined,undefined,2,1,1,undefined,undefined},
                       {type,'PrepaidVendorPostTransactionResponse',sequence,
                        [{el,
                          [{alt,'PrepaidVendorPostTransactionResult',
@@ -396,51 +389,6 @@
                            undefined}],
                          0,1,undefined,2}],
                        [],undefined,undefined,2,1,1,undefined,undefined},
-                      {type,'UploadEndOfDayReportResponse',sequence,
-                       [{el,
-                         [{alt,'UploadEndOfDayReportResult','Response',[],1,
-                           1,true,undefined}],
-                         0,1,undefined,2}],
-                       [],undefined,undefined,2,1,1,undefined,undefined},
-                      {type,'EODTransaction',sequence,
-                       [{el,
-                         [{alt,'VendorTranId',
-                           {'#PCDATA',char},
-                           [],1,1,true,undefined}],
-                         0,1,undefined,2},
-                        {el,
-                         [{alt,'Amount',
-                           {'#PCDATA',char},
-                           [],1,1,true,undefined}],
-                         0,1,undefined,3},
-                        {el,
-                         [{alt,'DateTime',
-                           {'#PCDATA',char},
-                           [],1,1,true,undefined}],
-                         0,1,undefined,4}],
-                       [],undefined,undefined,4,1,1,undefined,undefined},
-                      {type,'ArrayOfEODTransaction',sequence,
-                       [{el,
-                         [{alt,'EODTransaction','EODTransaction',[],1,1,true,
-                           undefined}],
-                         0,unbound,true,2}],
-                       [],undefined,undefined,2,1,1,undefined,undefined},
-                      {type,'UploadEndOfDayReport',sequence,
-                       [{el,
-                         [{alt,lstOfTrans,'ArrayOfEODTransaction',[],1,1,
-                           true,undefined}],
-                         0,1,undefined,2},
-                        {el,
-                         [{alt,'VendorCode',
-                           {'#PCDATA',char},
-                           [],1,1,true,undefined}],
-                         0,1,undefined,3},
-                        {el,
-                         [{alt,'Password',
-                           {'#PCDATA',char},
-                           [],1,1,true,undefined}],
-                         0,1,undefined,4}],
-                       [],undefined,undefined,4,1,1,undefined,undefined},
                       {type,'ReactivatePayTvCardResponse',sequence,
                        [{el,
                          [{alt,'ReactivatePayTvCardResult','Response',[],1,1,
@@ -450,6 +398,18 @@
                       {type,'ReactivatePayTvCard',sequence,
                        [{el,
                          [{alt,query,'QueryRequest',[],1,1,true,undefined}],
+                         0,1,undefined,2}],
+                       [],undefined,undefined,2,1,1,undefined,undefined},
+                      {type,'ReversePrepaidTransactionResponse',sequence,
+                       [{el,
+                         [{alt,'ReversePrepaidTransactionResult','Response',
+                           [],1,1,true,undefined}],
+                         0,1,undefined,2}],
+                       [],undefined,undefined,2,1,1,undefined,undefined},
+                      {type,'ReversePrepaidTransaction',sequence,
+                       [{el,
+                         [{alt,trans,'TransactionRequest',[],1,1,true,
+                           undefined}],
                          0,1,undefined,2}],
                        [],undefined,undefined,2,1,1,undefined,undefined},
                       {type,'BouquetDetails',sequence,
@@ -510,6 +470,18 @@
                        [{el,
                          [{alt,'PostTransactionResult','Response',[],1,1,
                            true,undefined}],
+                         0,1,undefined,2}],
+                       [],undefined,undefined,2,1,1,undefined,undefined},
+                      {type,'PostTransaction',sequence,
+                       [{el,
+                         [{alt,trans,'TransactionRequest',[],1,1,true,
+                           undefined}],
+                         0,1,undefined,2}],
+                       [],undefined,undefined,2,1,1,undefined,undefined},
+                      {type,'PostSchoolsTransactionResponse',sequence,
+                       [{el,
+                         [{alt,'PostSchoolsTransactionResult','Response',[],
+                           1,1,true,undefined}],
                          0,1,undefined,2}],
                        [],undefined,undefined,2,1,1,undefined,undefined},
                       {type,'TransactionRequest',sequence,
@@ -684,10 +656,21 @@
                            [],1,1,true,undefined}],
                          0,1,undefined,35}],
                        [],undefined,undefined,35,1,1,undefined,undefined},
-                      {type,'PostTransaction',sequence,
+                      {type,'PostSchoolsTransaction',sequence,
                        [{el,
                          [{alt,trans,'TransactionRequest',[],1,1,true,
                            undefined}],
+                         0,1,undefined,2}],
+                       [],undefined,undefined,2,1,1,undefined,undefined},
+                      {type,'QuerySchoolDetailsResponse',sequence,
+                       [{el,
+                         [{alt,'QuerySchoolDetailsResult','Response',[],1,1,
+                           true,undefined}],
+                         0,1,undefined,2}],
+                       [],undefined,undefined,2,1,1,undefined,undefined},
+                      {type,'QuerySchoolDetails',sequence,
+                       [{el,
+                         [{alt,query,'QueryRequest',[],1,1,true,undefined}],
                          0,1,undefined,2}],
                        [],undefined,undefined,2,1,1,undefined,undefined},
                       {type,'QueryCustomerDetailsResponse',sequence,
@@ -701,13 +684,13 @@
                          [{alt,query,'QueryRequest',[],1,1,true,undefined}],
                          0,1,undefined,2}],
                        [],undefined,undefined,2,1,1,undefined,undefined},
-                      {type,'QuerySchoolDetailsResponse',sequence,
+                      {type,'GetPrepaidVendorDetailsResponse',sequence,
                        [{el,
-                         [{alt,'QuerySchoolDetailsResult','Response',[],1,1,
-                           true,undefined}],
+                         [{alt,'GetPrepaidVendorDetailsResult','Response',[],
+                           1,1,true,undefined}],
                          0,1,undefined,2}],
                        [],undefined,undefined,2,1,1,undefined,undefined},
-                      {type,'QuerySchoolDetails',sequence,
+                      {type,'GetPrepaidVendorDetails',sequence,
                        [{el,
                          [{alt,query,'QueryRequest',[],1,1,true,undefined}],
                          0,1,undefined,2}],

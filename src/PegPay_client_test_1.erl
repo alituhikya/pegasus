@@ -247,27 +247,27 @@ pegasus_xml_response:get_response(ReturnedBody)
     _Soap_headers = [],
     _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
 
-'UploadEndOfDayReport'() -> 
-    'PegPay_client':'UploadEndOfDayReport'(
-        #'UploadEndOfDayReport'{
-            % Optional:
-            lstOfTrans = 
-                #'ArrayOfEODTransaction'{
-                    % List with zero or more elements:
-                    'EODTransaction' = [
-                        #'EODTransaction'{
-                            % Optional:
-                            'VendorTranId' = "?",
-                            % Optional:
-                            'Amount' = "?",
-                            % Optional:
-                            'DateTime' = "?"}]},
-            % Optional:
-            'VendorCode' = "?",
-            % Optional:
-            'Password' = "?"},
-    _Soap_headers = [],
-    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
+%%'UploadEndOfDayReport'() ->
+%%    'PegPay_client':'UploadEndOfDayReport'(
+%%        #'UploadEndOfDayReport'{
+%%            % Optional:
+%%            lstOfTrans =
+%%                #'ArrayOfEODTransaction'{
+%%                    % List with zero or more elements:
+%%                    'EODTransaction' = [
+%%                        #'EODTransaction'{
+%%                            % Optional:
+%%                            'VendorTranId' = "?",
+%%                            % Optional:
+%%                            'Amount' = "?",
+%%                            % Optional:
+%%                            'DateTime' = "?"}]},
+%%            % Optional:
+%%            'VendorCode' = "?",
+%%            % Optional:
+%%            'Password' = "?"},
+%%    _Soap_headers = [],
+%%    _Soap_options = [{url,"https://pegasus.co.ug:8019/TestPegPayApi/PegPay.asmx"}]).
 
 'PrepaidVendorPostTransaction'() -> 
     'PegPay_client':'PrepaidVendorPostTransaction'(
