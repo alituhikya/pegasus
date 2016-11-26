@@ -9,8 +9,8 @@
                  ]},
    {env, [
      {pegasus_apiusername,"CHAPCHAP"},
-     {pegasus_apipassword,"07C06VC857"},
-     {pegasus_url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"},
+     {pegasus_apipassword,"84Y56LO654"},
+     {pegasus_url,"https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx"},
      {alarm_emails,[<<"james.alituhikya@gmail.com">>,<<"maali.toni@gmail.com">>,<<"lydia.ashaba@gmail.com">>]}
    ]}
  ]}.

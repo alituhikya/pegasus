@@ -360,9 +360,19 @@ check_transaction_status(TransactionId) ->
           ],
           {ok, {BodyDecoded#get_status_response.status_description, BodyDecoded#get_status_response.receipt}, {Body, BodyDecoded}};
         <<"1000">> ->
-          {pending, pegasus_util:get_message(<<"1000">>, TransactionId), BodyDecoded};
+          Bodyx = [
+            {status_code,<<"1000">>},
+            {status_description, <<"PENDING">>}
+          ]
+          ,
+          {pending, pegasus_util:get_message(<<"1000">>, TransactionId), {Bodyx,BodyDecoded}};
         StatusCode ->
-          {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
+          MessageX = pegasus_util:get_message(StatusCode, TransactionId),
+          Bodyx = [
+            {status_code,StatusCode},
+            {status_description,  MessageX}
+          ],
+          {error, MessageX, {Bodyx,StatusCode}}
       end;
     {ok, S1, _, E1} ->
       io:format("E1 ~w ~n", [E1]),
@@ -490,6 +500,23 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
     {error, Body, "1000"} ->
       Archive(<<"checking status">>, Body),
       PeriodicState;
+    {error, Message, {BodyX,"100"}} ->
+      try
+        Archive(<<"transaction FAILED">>, BodyX),
+        OnFailureCallback([{<<"error_message">>, <<" ">>}])
+      catch
+        X10:Y10 -> Archive(<<"error in failure cleanup">>, [X10, Y10])
+      end,
+
+      PeriodicState#periodic_state{stop = true};
+    {error, Message, {BodyXY,_Code}} ->
+      try
+        Archive(<<"transaction FAILED">>, BodyXY),
+        OnFailureCallback([{<<"error_message">>, <<" ">>}])
+      catch
+        X12:Y12 -> Archive(<<"error in failure cleanup">>, [X12, Y12])
+      end,
+      PeriodicState#periodic_state{stop = true};
     {error, Message, "100"} ->
       try
         Archive(<<"transaction FAILED">>, Message),
@@ -497,7 +524,6 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
       catch
         X1:Y1 -> Archive(<<"error in failure cleanup">>, [X1, Y1])
       end,
-
       PeriodicState#periodic_state{stop = true};
     {error, Messagex, _} ->
       try
@@ -507,6 +533,5 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
         X2:Y2 ->
           Archive(<<"error in failure cleanup">>, [X2, Y2])
       end,
-
       PeriodicState#periodic_state{stop = true}
   end.
