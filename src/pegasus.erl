@@ -487,7 +487,6 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
                       erlang:iolist_to_binary([<<"token: ">>, R, <<"receipt: ">>, ReceiptRaw]);
                     {_, R2} when is_binary(ReceiptRaw) -> erlang:iolist_to_binary([R2, <<" ">>, ReceiptRaw]);
                     _-> <<" ">>
-
                   end,
         ConfirmCallback([{<<"receipt">>, Receipt}])
       catch
@@ -503,23 +502,23 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
     {error, Message, {BodyX,"100"}} ->
       try
         Archive(<<"transaction FAILED">>, BodyX),
-        OnFailureCallback([{<<"error_message">>, <<" ">>}])
+        OnFailureCallback([{<<"error_message">>, Message}])
       catch
         X10:Y10 -> Archive(<<"error in failure cleanup">>, [X10, Y10])
       end,
 
       PeriodicState#periodic_state{stop = true};
-    {error, Message, {BodyXY,_Code}} ->
+    {error, Message1, {BodyXY,_Code}} ->
       try
         Archive(<<"transaction FAILED">>, BodyXY),
-        OnFailureCallback([{<<"error_message">>, <<" ">>}])
+        OnFailureCallback([{<<"error_message">>, Message1}])
       catch
         X12:Y12 -> Archive(<<"error in failure cleanup">>, [X12, Y12])
       end,
       PeriodicState#periodic_state{stop = true};
-    {error, Message, "100"} ->
+    {error, Message2, "100"} ->
       try
-        Archive(<<"transaction FAILED">>, Message),
+        Archive(<<"transaction FAILED">>, Message2),
         OnFailureCallback([{<<"error_message">>, <<" ">>}])
       catch
         X1:Y1 -> Archive(<<"error in failure cleanup">>, [X1, Y1])
