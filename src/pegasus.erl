@@ -361,18 +361,18 @@ check_transaction_status(TransactionId) ->
           {ok, {BodyDecoded#get_status_response.status_description, BodyDecoded#get_status_response.receipt}, {Body, BodyDecoded}};
         <<"1000">> ->
           Bodyx = [
-            {status_code,<<"1000">>},
+            {status_code, <<"1000">>},
             {status_description, <<"PENDING">>}
           ]
           ,
-          {pending, pegasus_util:get_message(<<"1000">>, TransactionId), {Bodyx,BodyDecoded}};
+          {pending, pegasus_util:get_message(<<"1000">>, TransactionId), {Bodyx, BodyDecoded}};
         StatusCode ->
           MessageX = pegasus_util:get_message(StatusCode, TransactionId),
           Bodyx = [
-            {status_code,StatusCode},
-            {status_description,  MessageX}
+            {status_code, StatusCode},
+            {status_description, MessageX}
           ],
-          {error, MessageX, {Bodyx,StatusCode}}
+          {error, MessageX, {Bodyx, StatusCode}}
       end;
     {ok, S1, _, E1} ->
       io:format("E1 ~w ~n", [E1]),
@@ -392,11 +392,19 @@ check_transaction_status(TransactionId) ->
 check_transaction_test(_) ->
 
   Body = [
-    {status_code, "0"},
-    {status_description, "SUCCESS"},
-    {receipt, "qo8u02u0s903"}
+    {status_code, <<"0">>},
+    {status_description, <<"SUCCESS">>},
+    {receipt, <<"qo8u02u0s903">>},
+    {recharge_pin, <<"qo8u02u0s90332">>},
+    {company_ref, <<"98832">>}
   ],
-  {ok, {"SUCCESS", "qo8u02u0s903"}, Body}.
+  {ok, {<<"SUCCESS">>, <<"qo8u02u0s903">>}, {Body, #get_status_response{
+    status_code = <<"0">>,
+    status_description = <<"SUCCESS">>,
+    receipt = <<"qo8u02u0s903">>,
+    recharge_pin = <<"qo8u02u0s90332">>,
+    company_ref = <<"98832">>
+  }}}.
 
 -spec(check_transaction_test_pending(ExternalReference :: binary()) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
@@ -486,7 +494,7 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
                     {<<"prepaid_umeme">>, R} when is_binary(ReceiptRaw) ->
                       erlang:iolist_to_binary([<<"token: ">>, R, <<"receipt: ">>, ReceiptRaw]);
                     {_, R2} when is_binary(ReceiptRaw) -> erlang:iolist_to_binary([R2, <<" ">>, ReceiptRaw]);
-                    _-> <<" ">>
+                    _ -> <<" ">>
                   end,
         ConfirmCallback([{<<"receipt">>, Receipt}])
       catch
@@ -499,7 +507,7 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
     {error, Body, "1000"} ->
       Archive(<<"checking status">>, Body),
       PeriodicState;
-    {error, Message, {BodyX,"100"}} ->
+    {error, Message, {BodyX, "100"}} ->
       try
         Archive(<<"transaction FAILED">>, BodyX),
         OnFailureCallback([{<<"error_message">>, Message}])
@@ -508,7 +516,7 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
       end,
 
       PeriodicState#periodic_state{stop = true};
-    {error, Message1, {BodyXY,_Code}} ->
+    {error, Message1, {BodyXY, _Code}} ->
       try
         Archive(<<"transaction FAILED">>, BodyXY),
         OnFailureCallback([{<<"error_message">>, Message1}])
