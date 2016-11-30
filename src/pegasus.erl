@@ -492,7 +492,7 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
         Receipt = case {Payment#payment.type, BodyDecoded#get_status_response.recharge_pin} of
                     {_, undefined} when is_binary(ReceiptRaw) -> ReceiptRaw;
                     {<<"prepaid_umeme">>, R} when is_binary(ReceiptRaw) ->
-                      erlang:iolist_to_binary([<<"token: ">>, R, <<"receipt: ">>, ReceiptRaw]);
+                      erlang:iolist_to_binary([<<"token: ">>, R, <<" receipt: ">>, ReceiptRaw]);
                     {_, R2} when is_binary(ReceiptRaw) -> erlang:iolist_to_binary([R2, <<" ">>, ReceiptRaw]);
                     _ -> <<" ">>
                   end,
