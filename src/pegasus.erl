@@ -318,6 +318,8 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
     {error, Error} ->
       io:format("Error ~w ~n", [Error]),
       {error, <<"service provider unavailable, please try again">>, Error};
+    {error,{client,{http_request,req_timedout}},<<>>} ->
+      {error, <<"service provider unavailable, please try again">>, {error,timeout}};
     Error2 ->
       io:format("Error ~w ~n", [Error2]),
       {error, <<"fatal error in making contact with service provider, please try again">>, Error2}
@@ -381,6 +383,8 @@ check_transaction_status(TransactionId) ->
     {error, Error} ->
       io:format("Error ~w ~n", [Error]),
       {error, <<"service provider unavailable, please try again">>, Error};
+    {error,{client,{http_request,req_timedout}},<<>>} ->
+      {error, <<"service provider unavailable, please try again">>, {error,timeout}};
     Error2 ->
       io:format("Error ~w ~n", [Error2]),
       {error, <<"fatal error in making contact with service provider, please try again">>, Error2}
@@ -516,6 +520,9 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
       end,
 
       PeriodicState#periodic_state{stop = true};
+    {error, Messagex, {error,timeout}} ->
+      Archive(<<"timeout checking status">>, Messagex),
+      PeriodicState;
     {error, Message1, {BodyXY, _Code}} ->
       try
         Archive(<<"transaction FAILED">>, BodyXY),
@@ -532,6 +539,9 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
         X1:Y1 -> Archive(<<"error in failure cleanup">>, [X1, Y1])
       end,
       PeriodicState#periodic_state{stop = true};
+    {error, <<"fatal error in making contact with service provider, please try again">>,_}->
+      Archive(<<"timeout checking status">>, <<"fatal error in making contact with service provider, please try again">>),
+      PeriodicState;
     {error, Messagex, _} ->
       try
         Archive(<<"transaction ERROR">>, Messagex),
