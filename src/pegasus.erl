@@ -539,16 +539,16 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
         X1:Y1 -> Archive(<<"error in failure cleanup">>, [X1, Y1])
       end,
       PeriodicState#periodic_state{stop = true};
-    {error, <<"fatal error in making contact with service provider, please try again">>,_}->
-      Archive(<<"timeout checking status">>, <<"fatal error in making contact with service provider, please try again">>),
-      PeriodicState;
-    {error, Messagex, _} ->
-      try
-        Archive(<<"transaction ERROR">>, Messagex),
-        OnFailureCallback([{<<"error_message">>, Messagex}])
-      catch
-        X2:Y2 ->
-          Archive(<<"error in failure cleanup">>, [X2, Y2])
-      end,
-      PeriodicState#periodic_state{stop = true}
+    {error, Messagex, X} ->
+      Archive(<<"Error occured, still checking">>,X, Messagex),
+      PeriodicState
+%%      try
+%%        Archive(<<"transaction ERROR">>, Messagex),
+%%        OnFailureCallback([{<<"error_message">>, Messagex}])
+%%      catch
+%%        X2:Y2 ->
+%%          Archive(<<"error in failure cleanup">>, [X2, Y2])
+%%      end,
+%%      PeriodicState#periodic_state{stop = true}
+
   end.
