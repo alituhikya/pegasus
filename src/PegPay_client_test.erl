@@ -18,7 +18,7 @@
         #'GetServerStatus'{
 },
     _Soap_headers = [],
-    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"}]),
+    _Soap_options = [{url,"https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx"}]),
     pegasus_xml_response:get_response(ReturnedBody).
 
 'GetTransactionDetails'() ->
@@ -38,7 +38,7 @@
                     'QueryField6' = Settings#pegasus_settings.api_password,
                     'QueryField10' = "my id"}},
     _Soap_headers = [],
-    _Soap_options = [{url,"https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"},{timeout, 60000}]),
+    _Soap_options = [{url,"https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx"},{timeout, 60000}]),
     file:write_file("/tmp/response.xml", io_lib:fwrite("~p.\n", [Response]))
 .
 

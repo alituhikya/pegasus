@@ -20,13 +20,13 @@
   authenticate/1,
   check_transaction_status/1,
   get_transaction_status/1,
-  confirmation_poll/1
+  confirmation_poll/1,
+  test/0
 ]).
 
 -spec(get_details(#payment{}) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = TransactionId}) ->
-
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(BillID),
   Value = 'PegPay_client':'QueryCustomerDetails'(
@@ -46,7 +46,8 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
         'QueryField6' = Settings#pegasus_settings.api_password
       }},
     _Soap_headers = [],
-    _Soap_options = [{url, Settings#pegasus_settings.url}]),
+    _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}
+    ]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_details_response(ReturnedBody),
@@ -289,7 +290,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
         'PostField21' = Param %%Customer Type e.g. PREPAID or POSTPAID etc.
       }},
     _Soap_headers = [],
-    _Soap_options = [{url, Settings#pegasus_settings.url}]),
+    _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
@@ -345,7 +346,7 @@ check_transaction_status(TransactionId) ->
         'QueryField6' = Settings#pegasus_settings.api_password,
         'QueryField10' = binary_to_list(TransactionId)}},
     _Soap_headers = [],
-    _Soap_options = [{url, Settings#pegasus_settings.url}]),
+    _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_status_response(ReturnedBody),
@@ -487,6 +488,11 @@ poll(PeriodicState) ->
   poll_internal(fun check_transaction_status/1, PeriodicState).
 poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Payment}) ->
   Archive = Payment#payment.archive,
+  try
+    Archive(<<"Status Poll">>, PeriodicState)
+  catch
+     _ : _ -> nothing
+  end,
   ConfirmCallback = Payment#payment.on_confirm_callback,
   OnFailureCallback = Payment#payment.on_indeterminate_callback,
   case CheckStatusFunction(Payment#payment.transaction_id) of
@@ -552,3 +558,12 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
 %%      PeriodicState#periodic_state{stop = true}
 
   end.
+
+test()->
+  application:start(asn1),
+  application:start(crypto),
+  application:start(public_key),
+  application:start(ssl),application:start(ibrowse),
+  application:start(fast_xml),
+  TransactionId = number_manipulator:get_guid_long(),
+  get_details(#payment{customer_id = <<"2167527">>, type = <<"nswc_kampala">>, transaction_id = TransactionId}).
