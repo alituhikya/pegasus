@@ -165,9 +165,9 @@ get_message(<<"1000">>,_TransactionRef)->
 get_message(<<"100">>,_)->
   <<"FAILED">>;
 get_message(<<"1">>,_TransactionRef)-> _Title  = <<"INVALID CUSTOMER REFERENCE">>,
-  <<"Invalid account/customer id">>;
+  <<"Invalid account number">>;
 get_message(<<"200">>,_TransactionRef)->_Title  = <<"INVALID CUSTOMER REFERENCE">>,
-  <<"Invalid account/customer id">>;
+  <<"Invalid account number">>;
 get_message(<<"2">>,TransactionRef )->
   Title  = <<"INVALID PEGPAY VENDOR CREDENTIALS">>,
   send_alarm(Title,TransactionRef),

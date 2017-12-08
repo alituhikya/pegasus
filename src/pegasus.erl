@@ -80,7 +80,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
       {error, <<"service provider unavailable, please try again">>, Error};
     Error2 ->
       io:format("Error ~w ~n", [Error2]),
-      {error, <<"fatal error in making contact with service provider, please try again">>, Error2}
+      {error, <<"service provider temporarily unavailable">>, Error2}
 
   end.
 %% @doc
@@ -312,21 +312,21 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
             {error, Error3} -> {error, <<"failed to initialize ">>, Error3}
           end;
         StatusCode ->
-          file:write_file("/tmp/body_return", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
-          {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
+          Description =  BodyDecoded#post_transaction_response.status_description,
+          {error, pegasus_util:get_message(StatusCode, TransactionId,Description), Value}
       end;
     {ok, S1, _, E1} ->
       io:format("E1 ~w ~n", [E1]),
       io:format("S1 ~w ~n", [S1]),
-      {error, <<"transaction initiation failed">>, E1};
+      {error, <<"transaction initiation failed, please try again">>, E1};
     {error, Error} ->
       io:format("Error ~w ~n", [Error]),
-      {error, <<"service provider unavailable, please try again">>, Error};
+      {error, <<"service provider temporarily unavailable, please try again">>, Error};
     {error,{client,{http_request,req_timedout}},<<>>} ->
-      {error, <<"service provider unavailable, please try again">>, {error,timeout}};
+      {error, <<"service provider temporarily unavailable, please try again">>, {error,timeout}};
     Error2 ->
       io:format("Error ~w ~n", [Error2]),
-      {error, <<"fatal error in making contact with service provider, please try again">>, Error2}
+      {error, <<"service provider temporarily unavailable, please try again">>, Error2}
   end.
 
 -spec(get_transaction_status(ExternalReference :: binary()) ->
