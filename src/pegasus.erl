@@ -21,7 +21,8 @@
   check_transaction_status/1,
   get_transaction_status/1,
   confirmation_poll/1,
-  test/0
+  test/0,
+  test/2
 ]).
 
 -spec(get_details(#payment{}) ->
@@ -155,7 +156,9 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
             {error, Error3} -> {error, <<"failed to initialize ">>, Error3}
           end;
         StatusCode ->
-          {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
+          Description =  BodyDecoded#post_transaction_response.status_description,
+          {error, pegasus_util:get_message(StatusCode, TransactionId,Description),
+            StatusCode}
       end
   end;
 %% this is to test success case
@@ -310,6 +313,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
             {error, Error3} -> {error, <<"failed to initialize ">>, Error3}
           end;
         StatusCode ->
+          file:write_file("/tmp/body_return", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
           {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
       end;
     {ok, S1, _, E1} ->
@@ -370,6 +374,7 @@ check_transaction_status(TransactionId) ->
           ,
           {pending, pegasus_util:get_message(<<"1000">>, TransactionId), {Bodyx, BodyDecoded}};
         StatusCode ->
+          file:write_file("/tmp/body_return", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
           MessageX = pegasus_util:get_message(StatusCode, TransactionId),
           Bodyx = [
             {status_code, StatusCode},
@@ -567,3 +572,36 @@ test()->
   application:start(fast_xml),
   TransactionId = number_manipulator:get_guid_long(),
   get_details(#payment{customer_id = <<"2167527">>, type = <<"nswc_kampala">>, transaction_id = TransactionId}).
+
+test(AccountNumber,Id)->
+  application:start(asn1),
+  application:start(crypto),
+  application:start(public_key),
+  application:start(ssl),application:start(ibrowse),
+  application:start(fast_xml),
+  TransactionId = number_manipulator:get_guid_long(),
+
+  {ok, {StatusDescription, CustomerName}, Body}
+    = pegasus: get_details(#payment{customer_id =AccountNumber, type = Id, transaction_id = TransactionId}),
+
+  io:format("StatusDescription ~w CustomerName ~w Body ~w ~n",[StatusDescription,CustomerName,Body]),
+  CustomerDetails = [{<<"CustomerName">>, CustomerName}],
+  Payment2 = #payment{
+    email = <<"ajames@chapchap.co">>,
+    amount = 1000,
+    customer_id = AccountNumber,
+    customer_details = CustomerDetails,
+    type = Id,
+    transaction_id = TransactionId,
+    phone_number = <<"256756719888">>,
+    start_after = 1000,
+    max = 3,
+    poll_interval = 1000,
+    on_confirm_callback = fun(_)-> io:format("on confirm XXXXXXXXXXXXXXXX~n") end,
+    on_indeterminate_callback = fun(_)-> io:format("on failed XXXXXXXXXXXXXXXX~n") end,
+    archive = fun(_,_)-> io:format("archive XXXXXXXXXXXXXXXX~n") end
+  },
+  io:format("Email ~w ~n ",[Payment2#payment.email]),
+  pegasus:pay_bill(Payment2).
+
+%%  test(<<"200329839">>,<<"postpaid_umeme">>).

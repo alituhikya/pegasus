@@ -21,7 +21,7 @@
 -define(INTERNAL_ERROR, <<"An error occurred, please contact support if this error persits">>).
 
 %% API
--export([get_type_and_param/1,get_file/1,get_message/2,get_payment_date/0,get_transacion_type/1]).
+-export([get_type_and_param/1,get_file/1,get_message/2,get_payment_date/0,get_transacion_type/1,get_message/3]).
 -include("../include/pegasus_app_common.hrl").
 
 %% @doc yo payments has codes for different networks, this function returns those based on the the network provided
@@ -148,6 +148,14 @@ get_file(FileName)->
       filename:join(filename:dirname(Ebin), "priv") ++ "/" ++ FileName;
     PrivDir -> filename:absname(PrivDir)++ "/" ++ FileName
   end.
+
+get_message(<<"100">>,_TransactionRef,Message)->
+  case Message of
+    <<"FAILED: SUSPECTED DOUBLE POSTING AT PEGASUS">> -> <<"This transaction has already been posted">>;
+    _-> <<"An error occured, please try again">>
+  end;
+get_message(Code,_TransactionRef,_)->
+  get_message(Code,_TransactionRef).
 
 
 get_message(<<"0">>,_TransactionRef)->
