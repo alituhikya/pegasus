@@ -157,8 +157,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
           end;
         StatusCode ->
           Description =  BodyDecoded#post_transaction_response.status_description,
-          {error, pegasus_util:get_message(StatusCode, TransactionId,Description),
-            StatusCode}
+          {error, pegasus_util:get_message(StatusCode, TransactionId,Description), Value}
       end
   end;
 %% this is to test success case
