@@ -149,11 +149,111 @@ get_file(FileName)->
     PrivDir -> filename:absname(PrivDir)++ "/" ++ FileName
   end.
 
-get_message(<<"100">>,_TransactionRef,Message)->
-  case Message of
-    <<"FAILED: SUSPECTED DOUBLE POSTING AT PEGASUS">> -> <<"This transaction has already been posted">>;
-    _-> <<"An error occured, please try again">>
-  end;
+get_message(<<"100">>,_TransactionRef, <<"FAILED: SUSPECTED DOUBLE POSTING AT PEGASUS">>)->
+  <<"This transaction has already been posted">>;
+get_message(<<"100">>,_TransactionRef,  <<"INVALID PHONE NUMBER">>)->
+  <<"Invalid customer phone number">>;
+get_message(<<"100">>,_TransactionRef, <<"INVALID TRANSACTION AMOUNT">>)->
+  <<"INVALID TRANSACTION AMOUNT">>;
+get_message(<<"100">>,_TransactionRef, <<"INVALID PAYMENT DATE">>)->
+  <<"INVALID PAYMENT DATE">>;
+get_message(<<"100">>,TransactionRef, <<"INVALID TRANSACTION TYPE">>)->
+  send_alarm(<<"INVALID TRANSACTION TYPE">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,_TransactionRef, <<"INVALID CUSTOMER TELEPHONE">>)->
+  <<"INVALID CUSTOMER TELEPHONE">>;
+get_message(<<"100">>,TransactionRef,  <<"INVALID PAYMENT TYPE">>)->
+  send_alarm(<<"INVALID PAYMENT TYPE">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"TELLER DETAILS REQUIRED">>)->
+  send_alarm(  <<"TELLER DETAILS REQUIRED">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,_TransactionRef,  <<"TRANSACTION DETAILS ALREADY RECEIVED">>)->
+  <<"TRANSACTION DETAILS ALREADY RECEIVED">>;
+get_message(<<"100">>,_TransactionRef,  <<"GENERAL ERROR AT Utility">>)->
+  <<"GENERAL ERROR AT Utility">>;
+get_message(<<"100">>,TransactionRef,  <<"VENDOR CREDENTIALS HAVE BEEN DEACTIVATED.PLEASE CONTACT PEGASUS TECHNOLOGIES">>)->
+  send_alarm(<<"VENDOR CREDENTIALS HAVE BEEN DEACTIVATED.PLEASE CONTACT PEGASUS TECHNOLOGIES">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,_TransactionRef, <<"INVALID PHONE NUMBER">>)->
+  <<"INVALID PHONE NUMBER">>;
+get_message(<<"100">>,TransactionRef,<<"CUSTOMER NAME NOT SUPPLIED">>)->
+  send_alarm(<<"CUSTOMER NAME NOT SUPPLIED">>,TransactionRef),
+ ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"TRANSACTION TYPE NOT SUPPLIED. EG CASH,EFT">>)->
+  send_alarm(<<"TRANSACTION TYPE NOT SUPPLIED. EG CASH,EFT">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"PAYMENT TYPE NOT SUPPLIED. EG 2,3,4">>)->
+  send_alarm(<<"PAYMENT TYPE NOT SUPPLIED. EG 2,3,4">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"VENDOR TRANSACTION REFERENCE NOT SUPPLIED">>)->
+  send_alarm(<<"VENDOR TRANSACTION REFERENCE NOT SUPPLIED">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"TELLER DETAILS NOT SUPPLIED">>)->
+  send_alarm(<<"TELLER DETAILS NOT SUPPLIED">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"SIGNATURE NOT VALID AT PEGPAY">>)->
+  send_alarm(<<"SIGNATURE NOT VALID AT PEGPAY">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"SIGNATURE NOT PROVIDED">>)->
+  send_alarm(<<"SIGNATURE NOT PROVIDED">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"DUPLICATE VENDOR REFERENCE AT PEGPAY">>)->
+  send_alarm(<<"DUPLICATE VENDOR REFERENCE AT PEGPAY">>,TransactionRef),
+  <<"duplicate transaction">>;
+get_message(<<"100">>,_TransactionRef,  <<"SUSPECTED DOUBLE POSTING AT PEGPAY">>)->
+  <<"SUSPECTED DOUBLE POSTING">>;
+get_message(<<"100">>,TransactionRef, <<"ORIGINAL VENDOR TRANSACTION REFERENCE NOT SUPPLIED">>)->
+  send_alarm(<<"ORIGINAL VENDOR TRANSACTION REFERENCE NOT SUPPLIED">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"TRANSACTION NARATION IS REQUIRED">>)->
+  send_alarm(<<"TRANSACTION NARATION IS REQUIRED">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"INVALID ORIGINAL VENDOR TRANSACTION REFERENCE">>)->
+  send_alarm( <<"INVALID ORIGINAL VENDOR TRANSACTION REFERENCE">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"INVALID TRANSACTION REVERSAL STATUS SUPPLIED. EG 0 or 1">>)->
+  send_alarm(<<"INVALID TRANSACTION REVERSAL STATUS SUPPLIED. EG 0 or 1">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"AMOUNT TO REVERSE DOES NOT MATCH WITH AMOUNT REVERSING">>)->
+  send_alarm(<<"AMOUNT TO REVERSE DOES NOT MATCH WITH AMOUNT REVERSING">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"INVALID PAYMENT CODE">>)->
+  send_alarm(<<"INVALID PAYMENT CODE">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"INVALID CUSTOMER TYPE EG POSTPAID or PREPAID">>)->
+  send_alarm(<<"INVALID CUSTOMER TYPE EG POSTPAID or PREPAID">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"UTILITY CREDENTIALS NOT SET">>)->
+  send_alarm(<<"UTILITY CREDENTIALS NOT SET">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"UNABLE TO CONNECT TO UTILITY">>)->
+  send_alarm(<<"UNABLE TO CONNECT TO UTILITY">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"PEGPAY DB UNAVAILABLE">>)->
+  send_alarm(<<"PEGPAY DB UNAVAILABLE">>,TransactionRef),
+  <<"Service provider temporarily unavailable, please try again">>;
+get_message(<<"100">>,TransactionRef,  <<"GENERAL ERROR AT PEGPAY">>)->
+  send_alarm( <<"GENERAL ERROR AT PEGPAY">>,TransactionRef),
+  <<"General Error at service provider">>;
+get_message(<<"100">>,TransactionRef, <<"TRANSACTION DOESN'T EXIST IN PEGPAY">>)->
+  send_alarm(<<"TRANSACTION DOESN'T EXIST IN PEGPAY">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef,  <<"INVALID TIN">>)->
+  send_alarm(<<"INVALID TIN">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"PLEASE SUPPLY AN AREA FOR (Water) PAYMENTS">>)->
+  send_alarm( <<"PLEASE SUPPLY AN AREA FOR (Water) PAYMENTS">>,TransactionRef),
+  <<"PLEASE SUPPLY AN AREA FOR (Water) PAYMENTS">>;
+get_message(<<"100">>,TransactionRef,  <<"INSUFFICIENT VENDOR ACCOUNT BALANCE">>)->
+  send_alarm(<<"INSUFFICIENT VENDOR ACCOUNT BALANCE">>,TransactionRef),
+  ?INTERNAL_ERROR;
+get_message(<<"100">>,TransactionRef, <<"GENERAL ERROR AT PEGPAY">>)->
+  send_alarm(<<"GENERAL ERROR AT PEGPAY">>,TransactionRef),
+  <<"General Error at service provider">>;
+get_message(<<"100">>,TransactionRef,  <<"UNKNOWN URA PAYMENT TYPE">>)->
+  send_alarm(<<"UNKNOWN URA PAYMENT TYPE">>,TransactionRef),
+  <<"UNKNOWN URA PAYMENT TYPE">>;
 get_message(Code,_TransactionRef,_)->
   get_message(Code,_TransactionRef).
 
@@ -279,13 +379,14 @@ get_message(StatusCode,TransactionRef ) ->
   send_alarm(StatusCode,TransactionRef),
   <<"An error occured">>.
 
+
 %%INVALID BOUQUET FOR DSTV
 %%INVALID UTILITY REFERENCE NUMBER
 %%FAILED TO GET BOUQUET DETAILS
 
 
 send_alarm(Title,Message) ->
-core_emailer:send(
+core_emailer:send_mail_gun(
 Message,
 Title,
 <<"alarm@chapchap.co">>,
