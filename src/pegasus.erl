@@ -49,6 +49,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
     _Soap_headers = [],
     _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}
     ]),
+  file:write_file("/tmp/body_returned", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_details_response(ReturnedBody),
@@ -69,7 +70,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
           {ok, {BodyDecoded#query_details_response.status_description, BodyDecoded#query_details_response.customer_name}, Body};
 
         StatusCode ->
-          {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
+          {error, pegasus_util:get_message(StatusCode, TransactionId), BodyDecoded}
       end;
     {ok, S1, _, E1} ->
       io:format("E1 ~w ~n", [E1]),
@@ -293,6 +294,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
       }},
     _Soap_headers = [],
     _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}]),
+  file:write_file("/tmp/body_returned_paybill", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
