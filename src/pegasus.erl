@@ -49,7 +49,6 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
     _Soap_headers = [],
     _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}
     ]),
-  file:write_file("/tmp/body_returned", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_details_response(ReturnedBody),
@@ -61,7 +60,8 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
             {<<"TransactionRef">>, TransactionId},
             {<<"CustomerId">>, BodyDecoded#query_details_response.customer_ref},
             {<<"Biller">>, list_to_binary(Bill)},
-            {<<"CustomerName">>, BodyDecoded#query_details_response.customer_name},
+            {<<"CustomerName">>, iolist_to_binary([BodyDecoded#query_details_response.customer_name
+            ,<<" ">>,CustomerId])},
             {<<"PaymentItem">>, erlang:iolist_to_binary([list_to_binary(Bill), <<" ">>, list_to_binary(Param)])},
             {<<"Balance">>, BodyDecoded#query_details_response.outstanding_balance},
             {<<"Area/BouquetCode">>, BodyDecoded#query_details_response.'Area/BouquetCode'},
@@ -124,7 +124,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   CustomerName = binary_to_list(CustomerNameRaw),
   CustomerId = binary_to_list(CustomerIdRaw),
 
-  Authenticationsignature = pegasus_signature:get_signature(
+  AuthenticationSignature = pegasus_signature:get_signature(
     CustomerId,
     CustomerName,
     PhoneNumber,
@@ -136,7 +136,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
     TransactionType
   ),
   error_logger:error_msg("Email ~w ~n", [Email]),
-  error_logger:error_msg("Authenticationsignature ~w ~n", [Authenticationsignature]),
+  error_logger:error_msg("Authenticationsignature ~w ~n", [AuthenticationSignature]),
   Value = test_values:get_test_failed_value(),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
@@ -177,7 +177,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   CustomerName = binary_to_list(CustomerNameRaw),
   CustomerId = binary_to_list(CustomerIdRaw),
 
-  Authenticationsignature = pegasus_signature:get_signature(
+  AuthenticationSignature = pegasus_signature:get_signature(
     CustomerId,
     CustomerName,
     PhoneNumber,
@@ -189,7 +189,7 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
     TransactionType
   ),
   error_logger:error_msg("Email ~w ~n", [Email]),
-  error_logger:error_msg("Authenticationsignature ~w ~n", [Authenticationsignature]),
+  error_logger:error_msg("Authenticationsignature ~w ~n", [AuthenticationSignature]),
   Value = test_values:get_test_success_value(),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
@@ -294,7 +294,6 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
       }},
     _Soap_headers = [],
     _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}]),
-  file:write_file("/tmp/body_returned_paybill", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
@@ -375,7 +374,6 @@ check_transaction_status(TransactionId) ->
           ,
           {pending, pegasus_util:get_message(<<"1000">>, TransactionId), {Bodyx, BodyDecoded}};
         StatusCode ->
-          file:write_file("/tmp/body_return", io_lib:fwrite("~n ~p ~n ", [Value]), [append]),
           MessageX = pegasus_util:get_message(StatusCode, TransactionId),
           Bodyx = [
             {status_code, StatusCode},
@@ -604,5 +602,3 @@ test(AccountNumber,Id)->
   },
   io:format("Email ~w ~n ",[Payment2#payment.email]),
   pegasus:pay_bill(Payment2).
-
-%%  test(<<"200329839">>,<<"postpaid_umeme">>).
