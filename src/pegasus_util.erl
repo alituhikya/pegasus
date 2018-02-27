@@ -177,6 +177,8 @@ get_message(<<"100">>,TransactionRef,  <<"VENDOR CREDENTIALS HAVE BEEN DEACTIVAT
   ?INTERNAL_ERROR;
 get_message(<<"100">>,_TransactionRef, <<"INVALID PHONE NUMBER">>)->
   <<"INVALID PHONE NUMBER">>;
+get_message(<<"100">>,_TransactionRef,<<"INVALID CUSTOMER REFERENCE">>)->
+  <<"INVALID CUSTOMER METRE/ACCOUNT NUMBER">>;
 get_message(<<"100">>,TransactionRef,<<"CUSTOMER NAME NOT SUPPLIED">>)->
   send_alarm(<<"CUSTOMER NAME NOT SUPPLIED">>,TransactionRef),
  ?INTERNAL_ERROR;
