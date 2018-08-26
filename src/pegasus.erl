@@ -70,7 +70,8 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
           {ok, {BodyDecoded#query_details_response.status_description, BodyDecoded#query_details_response.customer_name}, Body};
 
         StatusCode ->
-          {error, pegasus_util:get_message(StatusCode, TransactionId), BodyDecoded}
+          Description =  BodyDecoded#post_transaction_response.status_description,
+          {error, pegasus_util:get_message(StatusCode, TransactionId,Description), Value}
       end;
     {ok, S1, _, E1} ->
       io:format("E1 ~w ~n", [E1]),
@@ -510,9 +511,11 @@ poll_internal(CheckStatusFunction, PeriodicState = #periodic_state{data = Paymen
                     {_, R2} when is_binary(ReceiptRaw) -> erlang:iolist_to_binary([R2, <<" ">>, ReceiptRaw]);
                     _ -> <<" ">>
                   end,
-        ConfirmCallback([{<<"receipt">>, Receipt}])
+        ConfirmCallback([{<<"receipt">>, Receipt},{<<"raw_receipt">>,BodyDecoded#get_status_response.receipt}])
       catch
-        X:Y -> Archive(<<"error in confirmation">>, [X, Y])
+        X:Y ->
+          Trace = io_lib:format("error has occurred of type: ~w , message: ~w trace ~w  \n", [X, Y, erlang:get_stacktrace()]),
+          Archive(<<"error in confirmation">>, [X, Y,Trace])
       end,
       PeriodicState#periodic_state{stop = true};
     {pending, _, Body} ->

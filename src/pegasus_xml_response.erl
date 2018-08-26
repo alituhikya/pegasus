@@ -41,9 +41,9 @@ get_status_response(Raw) ->
     recharge_pin = getValue(<<"ResponseField8">>, GetTransactionDetailsResult),
     receipt = getValue(<<"ResponseField4">>, GetTransactionDetailsResult),
     company_ref = getValue(<<"ResponseField9">>,GetTransactionDetailsResult)
-  }
+  }.
 
-.
+
 
 get_response(Raw)->
   ParmsList = core_util:decode_xml_params(Raw),

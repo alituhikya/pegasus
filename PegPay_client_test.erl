@@ -98,6 +98,35 @@
     _Soap_headers = [],
     _Soap_options = [{url,"https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx"}]).
 
+'QueryLastFiveDetails'() -> 
+    'PegPay_client':'QueryLastFiveDetails'(
+        #'QueryLastFiveDetails'{
+            % Optional:
+            query = 
+                #'QueryRequest'{
+                    % Optional:
+                    'QueryField1' = "?",
+                    % Optional:
+                    'QueryField2' = "?",
+                    % Optional:
+                    'QueryField3' = "?",
+                    % Optional:
+                    'QueryField4' = "?",
+                    % Optional:
+                    'QueryField5' = "?",
+                    % Optional:
+                    'QueryField6' = "?",
+                    % Optional:
+                    'QueryField7' = "?",
+                    % Optional:
+                    'QueryField8' = "?",
+                    % Optional:
+                    'QueryField9' = "?",
+                    % Optional:
+                    'QueryField10' = "?"}},
+    _Soap_headers = [],
+    _Soap_options = [{url,"https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx"}]).
+
 'QuerySchoolDetails'() -> 
     'PegPay_client':'QuerySchoolDetails'(
         #'QuerySchoolDetails'{

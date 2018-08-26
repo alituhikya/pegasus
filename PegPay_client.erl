@@ -13,6 +13,7 @@
 -export(['GetTransactionDetails'/3]).
 -export(['GetPrepaidVendorDetails'/3]).
 -export(['QueryCustomerDetails'/3]).
+-export(['QueryLastFiveDetails'/3]).
 -export(['QuerySchoolDetails'/3]).
 -export(['PostSchoolsTransaction'/3]).
 -export(['PostTransaction'/3]).
@@ -44,6 +45,12 @@
   Options::[any()]) -> soap:soap_response('QueryCustomerDetailsResponse'()).
 'QueryCustomerDetails'(Soap_body, Soap_headers, Options) ->
   soap_client_util:call(Soap_body, Soap_headers, Options, "\"http://PegPayPaymentsApi/QueryCustomerDetails\"", interface()).
+
+-spec 'QueryLastFiveDetails'(Soap_body::'QueryLastFiveDetails'(),
+  Soap_headers::[soap:soap_header()],
+  Options::[any()]) -> soap:soap_response('QueryLastFiveDetailsResponse'()).
+'QueryLastFiveDetails'(Soap_body, Soap_headers, Options) ->
+  soap_client_util:call(Soap_body, Soap_headers, Options, "\"http://PegPayPaymentsApi/QueryLastFiveDetails\"", interface()).
 
 -spec 'QuerySchoolDetails'(Soap_body::'QuerySchoolDetails'(),
   Soap_headers::[soap:soap_header()],

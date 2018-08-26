@@ -25,7 +25,7 @@ get_settings() ->
   {ok, Url} = case application:get_env(pegasus,pegasus_url) of
 
                 undefined -> {ok, "https://pegasus.co.ug:8896/LivePegPayApi/PegPay.asmx"};
-             %    undefined -> {ok, "https://197.221.144.222:8019/TestLevelOneApi/PegPay.asmx"};
+             %    undefined -> {ok, "http://test.pegasus.co.ug:8019/TestLevelOnePegPayApi/PegPay.asmx"};
                 %% undefined -> {ok, "https://197.221.144.222:8019/TestPegPayApi/PegPay.asmx"};
                 E -> E
               end,
