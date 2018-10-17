@@ -70,7 +70,7 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
           {ok, {BodyDecoded#query_details_response.status_description, BodyDecoded#query_details_response.customer_name}, Body};
 
         StatusCode ->
-          Description =  BodyDecoded#post_transaction_response.status_description,
+          Description =  BodyDecoded#query_details_response.status_description,
           {error, pegasus_util:get_message(StatusCode, TransactionId,Description), Value}
       end;
     {ok, S1, _, E1} ->
