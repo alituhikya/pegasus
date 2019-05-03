@@ -35,7 +35,7 @@ initiate() ->
 create_private_key() ->
   {ok, PemBin} = file:read_file(get_priv_key_file()),
   [RSAEntry] = public_key:pem_decode(PemBin),
-  PrivateKey = public_key:pem_entry_decode(RSAEntry, "chap4yopayments"),
+  PrivateKey = public_key:pem_entry_decode(RSAEntry, pegasus_env_util:get_private_key_password()),
   RsaKey = public_key:der_decode('RSAPrivateKey', PrivateKey#'PrivateKeyInfo'.privateKey),
   application:set_env(pegasus, private_key, RsaKey),
   RsaKey

@@ -3,7 +3,7 @@
 %%% @copyright (C) 2016, <COMPANY>
 %%% @doc
 %%% to connect to pegasus for bills
-%%% configure error logger to get your preffered loggin
+%%% configure error logger to get your preffered login
 %%% to make the payment you the call will be made an then a process will continually poll via the status call to check if it was successful
 %%% @end
 %%% Created : 01. Jul 2016 5:11 PM
