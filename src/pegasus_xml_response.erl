@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------
-%%% @author mb-spare
+%%% @author james
 %%% @copyright (C) 2016, <COMPANY>
 %%% @doc
-%%%
+%%% for parsing the xml response
 %%% @end
 %%% Created : 09. Jul 2016 7:00 AM
 %%%-------------------------------------------------------------------
 -module(pegasus_xml_response).
--author("mb-spare").
+-author("james").
 -include("../include/response.hrl").
 
 %% API

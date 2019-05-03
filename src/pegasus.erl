@@ -1,13 +1,15 @@
 %%%-------------------------------------------------------------------
-%%% @author mb-spare
+%%% @author james
 %%% @copyright (C) 2016, <COMPANY>
 %%% @doc
-%%%
+%%% to connect to pegasus for bills
+%%% configure error logger to get your preffered loggin
+%%% to make the payment you the call will be made an then a process will continually poll via the status call to check if it was successful
 %%% @end
 %%% Created : 01. Jul 2016 5:11 PM
 %%%-------------------------------------------------------------------
 -module(pegasus).
--author("mb-spare").
+-author("james").
 
 -include("../include/pegasus_app_common.hrl").
 -include("../../core/include/core_app_common.hrl").
@@ -25,6 +27,11 @@
   test/2
 ]).
 
+%% @doc
+%% to get the customer details this is the function called
+%% it corresponds to QueryCustomerDetails in the api document
+%% configure error logger in vm to get logs
+%% @end
 -spec(get_details(#payment{}) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = TransactionId}) ->
@@ -52,8 +59,6 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_details_response(ReturnedBody),
-      io:format("BodyDecoded ~w ~n", [BodyDecoded]),
-
       case BodyDecoded#query_details_response.status_code of
         <<"0">> ->
           Body = [
@@ -74,18 +79,20 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
           {error, pegasus_util:get_message(StatusCode, TransactionId,Description), Value}
       end;
     {ok, S1, _, E1} ->
-      io:format("E1 ~w ~n", [E1]),
-      io:format("S1 ~w ~n", [S1]),
+      error_logger:error_msg("ErrorCode ~w  Error ~w ~n", [S1, E1]),
       {error, <<"transaction initiation failed">>, E1};
     {error, Error} ->
-      io:format("Error ~w ~n", [Error]),
+      error_logger:error_msg("Error ~w ~n", [Error]),
       {error, <<"service provider unavailable, please try again">>, Error};
     Error2 ->
-      io:format("Error ~w ~n", [Error2]),
+      error_logger:error_msg("Error ~w ~n", [Error2]),
       {error, <<"service provider temporarily unavailable">>, Error2}
-
   end.
+
 %% @doc
+%% To make a bill payment, it corresponds to PrepaidVendorPostTransaction in the api doc
+%% to test this function without actually making the api call (mock http call) adjust the environment variable: test (see pegasus_env_util)
+%% fields:
 %%PostField1 CustomerRef(Utility CustomerID)
 %%PostField2 Customer Name
 %%PostField21 Customer Type e.g. PREPAID or POSTPAID etc.
@@ -109,110 +116,6 @@ get_details(#payment{customer_id = CustomerId, type = BillID, transaction_id = T
 %% @end
 -spec(pay_bill(#payment{}) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
-%% this is to test failure case
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = test_failed, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw, customer_details = CustomerDetails}) ->
-  Settings = pegasus_env_util:get_settings(),
-  {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
-  Amount = integer_to_list(AmountRaw),
-  PaymentDate = pegasus_util:get_payment_date(),
-  Narration = "Paying for " ++ Bill ++ " " ++ Param ++ " of " ++ Amount ++ " via chapchap",
-  TransactionType = pegasus_util:get_transacion_type(Bill),
-  PhoneNumber = binary_to_list(PhoneNumberRaw),
-  TransactionId = binary_to_list(TransactionIdRaw),
-  Email = binary_to_list(EmailRaw),
-
-  {<<"CustomerName">>, CustomerNameRaw} = lists:keyfind(<<"CustomerName">>, 1, CustomerDetails),
-  CustomerName = binary_to_list(CustomerNameRaw),
-  CustomerId = binary_to_list(CustomerIdRaw),
-
-  AuthenticationSignature = pegasus_signature:get_signature(
-    CustomerId,
-    CustomerName,
-    PhoneNumber,
-    TransactionId,
-    Settings,
-    PaymentDate,
-    Amount,
-    Narration,
-    TransactionType
-  ),
-  error_logger:error_msg("Email ~w ~n", [Email]),
-  error_logger:error_msg("Authenticationsignature ~w ~n", [AuthenticationSignature]),
-  Value = test_values:get_test_failed_value(),
-  case Value of
-    {ok, 200, _, _, _, _, ReturnedBody} ->
-      BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
-      io:format("BodyDecoded ~w ~n", [BodyDecoded]),
-
-      case BodyDecoded#post_transaction_response.status_code of
-        <<"1000">> ->
-          ResultPollStart = confirmation_poll(Payment),
-          case ResultPollStart of
-            {ok, _} ->
-              Body = [
-                {receipt_id, BodyDecoded#post_transaction_response.peg_pay_id},
-                {status_code, BodyDecoded#post_transaction_response.status_code},
-                {status_description, BodyDecoded#post_transaction_response.status_description}
-              ],
-              {ok, {BodyDecoded#post_transaction_response.status_description, BodyDecoded#post_transaction_response.peg_pay_id}, Body};
-            {error, Error3} -> {error, <<"failed to initialize ">>, Error3}
-          end;
-        StatusCode ->
-          Description =  BodyDecoded#post_transaction_response.status_description,
-          {error, pegasus_util:get_message(StatusCode, TransactionId,Description), Value}
-      end
-  end;
-%% this is to test success case
-pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = Type, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw, customer_details = CustomerDetails})
-  when Type =:= test orelse Type =:= test_failed_poll ->
-  Settings = pegasus_env_util:get_settings(),
-  {Bill, Param} = pegasus_util:get_type_and_param(<<"nswc_kampala">>),
-  Amount = integer_to_list(AmountRaw),
-  PaymentDate = pegasus_util:get_payment_date(),
-  Narration = "Paying for " ++ Bill ++ " " ++ Param ++ " of " ++ Amount ++ " via chapchap",
-  TransactionType = pegasus_util:get_transacion_type(Bill),
-  PhoneNumber = binary_to_list(PhoneNumberRaw),
-  TransactionId = binary_to_list(TransactionIdRaw),
-  Email = binary_to_list(EmailRaw),
-  {<<"CustomerName">>, CustomerNameRaw} = lists:keyfind(<<"CustomerName">>, 1, CustomerDetails),
-  CustomerName = binary_to_list(CustomerNameRaw),
-  CustomerId = binary_to_list(CustomerIdRaw),
-
-  AuthenticationSignature = pegasus_signature:get_signature(
-    CustomerId,
-    CustomerName,
-    PhoneNumber,
-    TransactionId,
-    Settings,
-    PaymentDate,
-    Amount,
-    Narration,
-    TransactionType
-  ),
-  error_logger:error_msg("Email ~w ~n", [Email]),
-  error_logger:error_msg("Authenticationsignature ~w ~n", [AuthenticationSignature]),
-  Value = test_values:get_test_success_value(),
-  case Value of
-    {ok, 200, _, _, _, _, ReturnedBody} ->
-      BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
-      io:format("BodyDecoded ~w ~n", [BodyDecoded]),
-      case BodyDecoded#post_transaction_response.status_code of
-        <<"1000">> ->
-          ResultPollStart = confirmation_poll(Payment),
-          case ResultPollStart of
-            {ok, _} ->
-              Body = [
-                {receipt_id, BodyDecoded#post_transaction_response.peg_pay_id},
-                {status_code, BodyDecoded#post_transaction_response.status_code},
-                {status_description, BodyDecoded#post_transaction_response.status_description}
-              ],
-              {ok, {BodyDecoded#post_transaction_response.status_description, BodyDecoded#post_transaction_response.peg_pay_id}, Body};
-            {error, Error3} -> {error, <<"failed to initialize ">>, Error3}
-          end;
-        StatusCode ->
-          {error, pegasus_util:get_message(StatusCode, TransactionId), StatusCode}
-      end
-  end;
 pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = CustomerIdRaw, type = BillID, transaction_id = TransactionIdRaw, phone_number = PhoneNumberRaw, customer_details = CustomerDetails}) ->
   Settings = pegasus_env_util:get_settings(),
   {Bill, Param} = pegasus_util:get_type_and_param(BillID),
@@ -225,11 +128,13 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
   error_logger:error_msg("Email ~w ~n ", [[Payment#payment.email, EmailRaw]]),
   Email = binary_to_list(EmailRaw),
 
+%% @doc signing procedure
 %%  dataToSign (CustRef + CustName + CustomerTel +
 %%    VendorTransactionID + VendorCode + Password + PaymentDate + Teller +
 %%    TransactionAmount + Narration + TransactionType;) OR literally
-%%(PostField1 + PostField2 + PostField11 + PostField20 + PostField9 + PostField10 +
-%%PostField5 + PostField14 + PostField7 + PostField18 + PostField8)
+%% (PostField1 + PostField2 + PostField11 + PostField20 + PostField9 + PostField10 +
+%%  PostField5 + PostField14 + PostField7 + PostField18 + PostField8)
+%% @end
 
   {<<"CustomerName">>, CustomerNameRaw} = lists:keyfind(<<"CustomerName">>, 1, CustomerDetails),
   CustomerName = binary_to_list(CustomerNameRaw),
@@ -246,60 +151,68 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
     Narration,
     TransactionType
   ),
-  Value = 'PegPay_client':'PrepaidVendorPostTransaction'(
-    #'PrepaidVendorPostTransaction'{
-      % Optional:
-      trans =
-      #'TransactionRequest'{
-        % Optional:
-        'PostField1' = CustomerId,
-        % Optional:
-        'PostField2' = CustomerName,
-        % Optional:
-        'PostField3' = Param,
-        % Optional:
-        'PostField4' = Bill, %% UtilityCode
-        % Optional:
-        'PostField5' = PaymentDate, %% payment date, dd/MM/yyyy
-        % Optional:
-        'PostField6' = "",
-        % Optional:
-        'PostField7' = Amount, %% amount
-        % Optional:
-        'PostField8' = TransactionType,%%PostField8 TransactionType e.g. CASH,EFT etc.
-        % Optional:
-        'PostField9' = Settings#pegasus_settings.api_username,
-        % Optional:
-        'PostField10' = Settings#pegasus_settings.api_password,
-        % Optional:
-        'PostField11' = PhoneNumber, %% CustomerTel
-        % Optional:
-        'PostField12' = "0",%%Reversal (is 0 for Prepaid Vendors)
-        % Optional:
-        'PostField13' = "",
-        % Optional:
-        'PostField14' = PhoneNumber, %%Teller e.g. can be customerTel or customer Name
-        % Optional:
-        'PostField15' = "0",%%Offline (is 0)
-        % Optional:
-        'PostField16' = Authenticationsignature, %DigitalSignature
-        % Optional:
-        'PostField17' = "",%ChequeNumber(is left Empty
-        % Optional:
-        'PostField18' = Narration,
-        'PostField19' = Email,
-        % Optional:
-        'PostField20' = TransactionId,
-        % Optional:
-        'PostField21' = Param %%Customer Type e.g. PREPAID or POSTPAID etc.
-      }},
-    _Soap_headers = [],
-    _Soap_options = [{url, Settings#pegasus_settings.url},{timeout, 30000}]),
+  Value = case pegasus_env_util:test() of
+            prod ->
+              'PegPay_client':'PrepaidVendorPostTransaction'(
+                    #'PrepaidVendorPostTransaction'{
+                      % Optional:
+                      trans =
+                      #'TransactionRequest'{
+                        % Optional:
+                        'PostField1' = CustomerId,
+                        % Optional:
+                        'PostField2' = CustomerName,
+                        % Optional:
+                        'PostField3' = Param,
+                        % Optional:
+                        'PostField4' = Bill, %% UtilityCode
+                        % Optional:
+                        'PostField5' = PaymentDate, %% payment date, dd/MM/yyyy
+                        % Optional:
+                        'PostField6' = "",
+                        % Optional:
+                        'PostField7' = Amount, %% amount
+                        % Optional:
+                        'PostField8' = TransactionType,%%PostField8 TransactionType e.g. CASH,EFT etc.
+                        % Optional:
+                        'PostField9' = Settings#pegasus_settings.api_username,
+                        % Optional:
+                        'PostField10' = Settings#pegasus_settings.api_password,
+                        % Optional:
+                        'PostField11' = PhoneNumber, %% CustomerTel
+                        % Optional:
+                        'PostField12' = "0",%%Reversal (is 0 for Prepaid Vendors)
+                        % Optional:
+                        'PostField13' = "",
+                        % Optional:
+                        'PostField14' = PhoneNumber, %%Teller e.g. can be customerTel or customer Name
+                        % Optional:
+                        'PostField15' = "0",%%Offline (is 0)
+                        % Optional:
+                        'PostField16' = Authenticationsignature, %DigitalSignature
+                        % Optional:
+                        'PostField17' = "",%ChequeNumber(is left Empty
+                        % Optional:
+                        'PostField18' = Narration,
+                        'PostField19' = Email,
+                        % Optional:
+                        'PostField20' = TransactionId,
+                        % Optional:
+                        'PostField21' = Param %%Customer Type e.g. PREPAID or POSTPAID etc.
+                      }},
+                _Soap_headers = [],
+                _Soap_options = [{url, Settings#pegasus_settings.url}, {timeout, 30000}]);
+            test_success ->
+              test_values:get_test_success_value();
+            test_faliure ->
+              test_values:get_test_failed_value();
+            _ ->
+              throw(<<"wrong test parameter!!! ">>)
+          end,
+
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_post_transaction_response(ReturnedBody),
-      io:format("BodyDecoded ~w ~n", [BodyDecoded]),
-
       case BodyDecoded#post_transaction_response.status_code of
         <<"1000">> ->
           ResultPollStart = confirmation_poll(Payment),
@@ -318,19 +231,23 @@ pay_bill(Payment = #payment{email = EmailRaw, amount = AmountRaw, customer_id = 
           {error, pegasus_util:get_message(StatusCode, TransactionId,Description), Value}
       end;
     {ok, S1, _, E1} ->
-      io:format("E1 ~w ~n", [E1]),
-      io:format("S1 ~w ~n", [S1]),
+      error_logger:error_msg("Error ~w ~n", [E1]),
+      error_logger:error_msg("Code ~w ~n", [S1]),
       {error, <<"transaction initiation failed, please try again">>, E1};
     {error, Error} ->
-      io:format("Error ~w ~n", [Error]),
+      error_logger:error_msg("Error ~w ~n", [Error]),
       {error, <<"service provider temporarily unavailable, please try again">>, Error};
     {error,{client,{http_request,req_timedout}},<<>>} ->
       {error, <<"service provider temporarily unavailable, please try again">>, {error,timeout}};
     Error2 ->
-      io:format("Error ~w ~n", [Error2]),
+      error_logger:error_msg("Error ~w ~n", [Error2]),
       {error, <<"service provider temporarily unavailable, please try again">>, Error2}
   end.
 
+%% @doc
+%% to check the status of the transaction
+%% it will accept a payment record, or external referece ie transaction id
+%% @end
 -spec(get_transaction_status(ExternalReference :: binary()) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 get_transaction_status(#payment{transaction_id = TransactionId}) ->
@@ -355,8 +272,6 @@ check_transaction_status(TransactionId) ->
   case Value of
     {ok, 200, _, _, _, _, ReturnedBody} ->
       BodyDecoded = pegasus_xml_response:get_status_response(ReturnedBody),
-      io:format("BodyDecoded ~w ~n", [BodyDecoded]),
-
       case BodyDecoded#get_status_response.status_code of
         <<"0">> ->
           Body = [
@@ -371,8 +286,7 @@ check_transaction_status(TransactionId) ->
           Bodyx = [
             {status_code, <<"1000">>},
             {status_description, <<"PENDING">>}
-          ]
-          ,
+          ],
           {pending, pegasus_util:get_message(<<"1000">>, TransactionId), {Bodyx, BodyDecoded}};
         StatusCode ->
           MessageX = pegasus_util:get_message(StatusCode, TransactionId),
@@ -383,20 +297,21 @@ check_transaction_status(TransactionId) ->
           {error, MessageX, {Bodyx, StatusCode}}
       end;
     {ok, S1, _, E1} ->
-      io:format("E1 ~w ~n", [E1]),
-      io:format("S1 ~w ~n", [S1]),
+      error_logger:error_msg("E1 ~w ~n", [E1]),
+      error_logger:error_msg("S1 ~w ~n", [S1]),
       {error, <<"transaction initiation failed">>, E1};
     {error, Error} ->
-      io:format("Error ~w ~n", [Error]),
+      error_logger:error_msg("Error ~w ~n", [Error]),
       {error, <<"service provider unavailable, please try again">>, Error};
     {error,{client,{http_request,req_timedout}},<<>>} ->
       {error, <<"service provider unavailable, please try again">>, {error,timeout}};
     Error2 ->
-      io:format("Error ~w ~n", [Error2]),
+      error_logger:error_msg("Error ~w ~n", [Error2]),
       {error, <<"fatal error in making contact with service provider, please try again">>, Error2}
 
   end.
 
+%% @doc for testing the polling of the transaction @end
 -spec(check_transaction_test(ExternalReference :: binary()) ->
   {ok, Message :: binary(), Trace :: term()} | {error, Message :: binary(), Trace :: term()}).
 check_transaction_test(_) ->
@@ -459,6 +374,10 @@ authenticate(production, #core_request{args_list = ArgsList}) ->
       {error, <<"signature authentiacation failed">>}
   end.
 
+%% @doc this will poll the status of a transaction
+%% it wil expect a success call back , failure call back and archiving call back function (for logging)
+%% @end
+-spec(confirmation_poll(#payment{})->tuple()).
 confirmation_poll(Payment = #payment{phone_number = _PhoneNumber, archive = Archive, type = Type, start_after = StartAfter, poll_interval = Interval, max = Max}) ->
   StartPoll = periodic_sup:start_periodic(
     #periodic_state{
@@ -482,6 +401,14 @@ confirmation_poll(Payment = #payment{phone_number = _PhoneNumber, archive = Arch
       {error, Error1}
   end.
 
+%% @doc
+%% this will poll the status of a transaction
+%% it wil expect a success call back , failure call back and archiving call back function (for logging)
+%% type parameter can be used for tests
+%% the confirmation callback should be function with one parameter, that parameter passed will be the receipt/token
+%% the failure callback should be a function with one parameter, that parameter passed will be the error
+%% the archive call back should be a function with one parameter, that parameter passed will be the status
+%% @end
 poll(PeriodicState = #periodic_state{type = test, number_of_calls = N}) ->
   if
     N < 3 -> poll_internal(fun check_transaction_test_pending/1, PeriodicState);

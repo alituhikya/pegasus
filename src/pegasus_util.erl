@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% @author mb-spare
+%%% @author james
 %%% @copyright (C) 2016, <COMPANY>
 %%% @doc
 %%% To generate the signature concatenate the following
@@ -17,7 +17,7 @@
 %%% Created : 01. Jul 2016 5:23 PM
 %%%-------------------------------------------------------------------
 -module(pegasus_util).
--author("mb-spare").
+-author("james").
 -define(INTERNAL_ERROR, <<"An error occurred, please contact support if this error persits">>).
 
 %% API

@@ -1,5 +1,3 @@
-rebar eunit -C test.config suite=validator_tests
-
-cassandra
-    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.cassandra.plist
-    launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.cassandra.plist
+pegasus:get_details(Payment).
+pegasus:pay_bill(Payment).
+pegasus:check_transaction_status(Payment).

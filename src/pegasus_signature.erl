@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------
-%%% @author mb-spare
+%%% @author james
 %%% @copyright (C) 2016, <COMPANY>
 %%% @doc
-%%%
+%%% to create the signature
 %%% @end
 %%% Created : 06. Jul 2016 5:07 PM
 %%%-------------------------------------------------------------------
 -module(pegasus_signature).
--author("mb-spare").
+-author("james").
 
 -include("../include/pegasus_app_common.hrl").
 -include_lib("public_key/include/public_key.hrl").
