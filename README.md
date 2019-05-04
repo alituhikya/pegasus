@@ -99,4 +99,4 @@ Can be found in `pegasus_env_util`
 
 
 ## Contributors
-This application was developed by James Alituhikya.  The development of this library was sponsored by [chapchap ltd](https://www.chapchap.co).
+This application was developed by James Alituhikya(@badnessJust).  The development of this library was sponsored by [chapchap ltd](https://www.chapchap.co).
